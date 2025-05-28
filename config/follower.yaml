@@ -1,0 +1,27 @@
+# Copyright 2025 Reazon Holdings, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+FollowerNode:
+  ros__parameters:
+    Dn: [0.7222,   0.7,     0.7,     0.7,     0.12,    0.11,   0.15,   0.050]
+    Jn: [0.55,     0.350,   0.10,    0.024,   0.020,   0.013,  0.008,  0.014]
+    gn: [15.0,     15.0,    18.0,    24.0,    15.0,    16.0,   15.0,   10.0 ]
+    Kp: [100.0,    1100.0,  5250.0,  5300.0,  1000.0,  300.0,  300.0,  350.0]
+    Kd: [17.00,    18.00,   90.00,   94.00,   60.00,   20.00,  20.00,  20.00]
+    Kf: [1.5,      1.5,     1.5,     2.7,     1.0,     0.8,    1.0,    0.0  ]
+    Fc: [0.572,    0.396,   0.450,   0.146,   0.070,   0.093,  0.212,  0.212]
+    k:  [193.814,  20.227,  29.065,  130.038, 151.771, 242.287,7.888,  7.0  ]
+    Fv: [0.522,    0.40,    0.604,   0.813,   0.029,   0.072,  0.084,  0.084]
+    Fo: [0.012,    0.02,    0.008,  -0.058,   0.005,   0.009, -0.059, -0.05 ]
+

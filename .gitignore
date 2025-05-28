@@ -1,0 +1,35 @@
+# Vim swap, backup, and undo files
+*.npz
+*.swp
+*.swo
+*.swn
+*~
+*.un~
+.netrwhist
+
+# CSV logs / data files
+*.csv
+
+# Temporary or experimental files
+pos.c
+Kp.c
+
+# Log or output directories
+data/
+tags
+.vscode
+
+# Ignore ament-generated or temporary directories
+ament_*/
+
+# CMake build artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+*.ninja
+*.bin
+a.out
+*.o
+CMakeConfigureLog.yaml
