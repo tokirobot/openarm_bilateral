@@ -34,6 +34,10 @@ CANBus::CANBus(const std::string& interface, int mode)
                 if (sock_ < 0) {
                         throw std::runtime_error("Failed to open CAN socket: " + std::string(std::strerror(errno)));
                 }
+                
+                // set the nonblocking mode
+                //int flags = fcntl(sock_, F_GETFL, 0);
+                //fcntl(sock_, F_SETFL, flags | O_NONBLOCK);
 
                 std::strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ);
                 if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
@@ -49,6 +53,13 @@ CANBus::CANBus(const std::string& interface, int mode)
                         if (setsockopt(sock_, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enable_canfd, sizeof(enable_canfd)) < 0) {
                                 throw std::runtime_error("Failed to enable CAN FD: " + std::string(std::strerror(errno)));
                         }
+                }
+                
+                struct timeval timeout;
+                timeout.tv_sec = 0;        
+                timeout.tv_usec = 100000;  
+                if (setsockopt(sock_, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+                        throw std::runtime_error("Failed to set SO_RCVTIMEO: " + std::string(std::strerror(errno)));
                 }
 
                 if (bind(sock_, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
@@ -123,19 +134,33 @@ struct can_frame CANBus::recvClassic() {
         std::memset(&frame, 0, sizeof(frame));
 
         int nbytes = read(sock_, &frame, sizeof(struct can_frame));
+        //if (nbytes < 0) {
+        //perror("CAN read error");
+        //}
         if (nbytes < 0) {
-                perror("CAN read error");
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        std::cerr << "[WARN] CAN read timeout - no data received within the specified time." << std::endl;
+                } else {
+                        perror("CAN read error");
+                }
         }
-        return frame;
-}
+                return frame;
+        }
 
 struct canfd_frame CANBus::recvFD() {
         struct canfd_frame frame;
         std::memset(&frame, 0, sizeof(frame));
 
         int nbytes = read(sock_, &frame, sizeof(struct canfd_frame));
+        //if (nbytes < 0) {
+        //perror("CAN FD read error");
+        //}
         if (nbytes < 0) {
-                perror("CAN FD read error");
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                        std::cerr << "[WARN] CAN FD read timeout - no data received within the specified time." << std::endl;
+                } else {
+                        perror("CAN FD read error");
+                }
         }
         return frame;
 }

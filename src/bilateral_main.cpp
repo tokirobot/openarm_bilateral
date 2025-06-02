@@ -342,7 +342,6 @@ int main(int argc, char **argv)
                         DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
-                        {true, true, true, true, true, true, true, true},
                         Control_Type::MIT,
                         CAN_MODE_FD
                         );
@@ -352,10 +351,28 @@ int main(int argc, char **argv)
                         DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
-                        {true, true, true, true, true, true, true, true},
                         Control_Type::MIT,
                         CAN_MODE_FD
                         );
+
+        
+        if(arm_l->check_init_success() == true){
+                std::cout << "leader arm init success!" << std::endl;
+        }else{
+                std::cout << "leader arm init failed!" << std::endl;
+                std::exit(1);
+        }
+
+        arm_l->enable();
+
+        if(arm_f->check_init_success() == true){
+                std::cout << "follower arm init success!" << std::endl;
+        }else{
+                std::cout << "follower arm init failed!" << std::endl;
+                std::exit(1);
+        }
+
+        arm_f->enable();
 
         // use if you need unique zero position
         //arm_l->setZeroPosition();

@@ -105,7 +105,7 @@ add_executable(canfd_test samples/canfd_test.cpp)
 target_link_libraries(canfd_test bilateral_openarm)
 
 install(TARGETS
-        #bilateral_openarm_main
+        bilateral_openarm_main
         sample_dynamics
         sample_grav_comp
         constant_speed_test

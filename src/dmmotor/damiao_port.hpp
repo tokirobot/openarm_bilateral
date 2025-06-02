@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <memory>  
+#include <cmath>
 #include "motor_control.hpp"
 #include "motor.hpp"
 #include "canfd/canbus.hpp"
@@ -27,11 +28,10 @@ class DamiaoPort {
                                 const std::vector<DM_Motor_Type>& types, 
                                 const std::vector<uint16_t>& can_ids, 
                                 const std::vector<uint16_t>& master_ids, 
-                                const std::vector<bool>& motor_with_torque, 
                                 Control_Type control_mode = Control_Type::MIT,
                                 int can_mode = CAN_MODE_FD);
                 
-                bool init_success();
+                bool check_init_success();
 
                 std::vector<std::vector<double>> getPresentStatus();
 
@@ -40,6 +40,8 @@ class DamiaoPort {
                 std::vector<double> getVelocities();
 
                 std::vector<double> getTorques();
+
+                void enable();
 
                 void disable();
 

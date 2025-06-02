@@ -30,12 +30,15 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+#include <cstdlib>
+#include <chrono>
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
 
-#define FOLLOWER_DEVICENAME0 "can0"
+#define openarm_DEVICENAME0 "can0"
 #define TICK 0.02
 #define DOF 7
+#define NJOINTS 8
 
 std::atomic<bool> running{true};
 
@@ -55,33 +58,40 @@ int main() {
         auto dyn = Dynamics(urdf_path, chain_root_link, left_leaf_link);
         dyn.Init();
         std::cout << description_path << std::endl;
-        DamiaoPort follower(
-                        FOLLOWER_DEVICENAME0, 
+        DamiaoPort openarm(
+                        openarm_DEVICENAME0, 
                         {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, 
                          DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
                          DM_Motor_Type::DM4310, DM_Motor_Type::DM4310,
-                         DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
-                        {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09},
-                        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x19},
-                        {true,true,true,true,true,true,true,true},
+                         DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
+                        {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+                        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         Control_Type::MIT,
                         CAN_MODE_FD);
 
-        std::cout << "init succes ???  :  " << follower.init_success() << std::endl;
+        if(openarm.check_init_success() == true){
+                std::cout << "openarm init success!" << std::endl;
+        }else{
+                std::cout << "openarm init failed!" << std::endl;
+                std::exit(1);
+        }
 
-        follower.moveTorqueSync2({0, 0, 0, 0, 0, 0, 0});
+        openarm.enable();
+
+
+        openarm.moveTorqueSync2({0, 0, 0, 0, 0, 0, 0, 0});
         const double kp_grav = 1.5;
         // const double kp_grav = 0.5;
-        std::vector<double> joint_positions(DOF, 0.0);
+        std::vector<double> joint_positions(NJOINTS, 0.0);
         std::vector<double> grav_torques(DOF, 0.0);
         std::vector<double> command(DOF, 0.0);
         while (running) {  
                 //std::cout << "In the loop" << std::endl;
                 auto loop_start_time = std::chrono::steady_clock::now();
 
-                for(size_t i = 0; i < DOF; ++i){
-                        joint_positions[i] = follower.motors_[i]->getPosition();
-                        //std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
+                for(size_t i = 0; i < NJOINTS; ++i){
+                        joint_positions[i] = openarm.motors_[i]->getPosition();
+                        std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
                 }
                 dyn.GetGravity(joint_positions.data(), grav_torques.data());
 
@@ -89,7 +99,7 @@ int main() {
                         command[i] = kp_grav * grav_torques[i];
                         //std::cout << "command[" << i << "] = " << command[i] << std::endl;
                 }
-                follower.moveTorqueSync2(command);
+                openarm.moveTorqueSync2(command);
                 auto loop_end_time = std::chrono::steady_clock::now();
                 std::chrono::duration<double> t_elapsed = loop_end_time - loop_start_time;
                 //std::cout << "elapsed time [s] = " << t_elapsed.count() << std::endl;
@@ -101,4 +111,5 @@ int main() {
                         //std::cout << "Loop execution time exceeded the tick duration!" << std::endl;
                 }
         }
+        openarm.disable();
 }

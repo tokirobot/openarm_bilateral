@@ -38,7 +38,7 @@
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
 
-#define FOLLOWER_DEVICENAME0 "can0"
+#define openarm_DEVICENAME0 "can0"
 #define TICK 0.002
 #define DOF 1 
 #define PI 3.141592665
@@ -53,17 +53,26 @@ void signalHandler(int) {
 int main(int argc, char **argv){
     std::signal(SIGINT, signalHandler);
 
-    DamiaoPort follower(
-        FOLLOWER_DEVICENAME0, 
+    DamiaoPort openarm(
+        openarm_DEVICENAME0, 
         {DM_Motor_Type::DM4340},
         {0x02},
         {0x12},
-        {true},
         Control_Type::MIT,
         CAN_MODE_FD);
 
-    //follower.setZeroPosition();
-    //follower.moveTorqueSync2({0});
+        if(openarm.check_init_success() == true){
+                std::cout << "openarm init success!" << std::endl;
+        }else{
+                std::cout << "openarm init failed!" << std::endl;
+                std::exit(1);
+        }
+
+        openarm.enable();
+
+
+    //openarm.setZeroPosition();
+    //openarm.moveTorqueSync2({0});
 
     std::vector<double> joint_positions(DOF, 0.0);
     std::vector<double> joint_velocities(DOF, 0.0);
@@ -74,9 +83,9 @@ int main(int argc, char **argv){
         auto loop_start_time = std::chrono::steady_clock::now();
 
         for (size_t i = 0; i < DOF; ++i) {
-            joint_positions[i] = follower.motors_[i]->getPosition();
-            joint_velocities[i] = follower.motors_[i]->getVelocity();
-            joint_torques[i] = follower.motors_[i]->getTorque();
+            joint_positions[i] = openarm.motors_[i]->getPosition();
+            joint_velocities[i] = openarm.motors_[i]->getVelocity();
+            joint_torques[i] = openarm.motors_[i]->getTorque();
 
             //std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
             //std::cout << "joint_velocities[" << i << "] = " << joint_velocities[i] << std::endl;
@@ -85,33 +94,33 @@ int main(int argc, char **argv){
 
         std::vector<double> kp_temp = {10.0};
         std::vector<double> kd_temp = {0.1};
-        std::vector<double> pos_temp = {3.14};
-        std::vector<double> vel_temp = {10000};
-        command = {10000};
+        std::vector<double> pos_temp = {0};
+        std::vector<double> vel_temp = {0};
+        command = {0};
 
         // setMIT mode
-        //follower.setMIT(pos_temp, vel_temp, kp_temp, kd_temp, command);
+        openarm.setMIT(pos_temp, vel_temp, kp_temp, kd_temp, command);
         
         // setMITSync mode
-        //follower.setMITSync(pos_temp, vel_temp, kp_temp, kd_temp, command);
+        //openarm.setMITSync(pos_temp, vel_temp, kp_temp, kd_temp, command);
 
         // setPosVel mode
-        // follower.setPosVel(pos_temp, vel_temp);
+        // openarm.setPosVel(pos_temp, vel_temp);
 
         // setPosVelSync mode
-         //follower.setPosVelSync(pos_temp, vel_temp);
+         //openarm.setPosVelSync(pos_temp, vel_temp);
 
         // setPosForce mode
-         //follower.setPosForce(pos_temp, vel_temp, command);
+         //openarm.setPosForce(pos_temp, vel_temp, command);
 
         // setPosForceSync mode
-         //follower.setPosForceSync(pos_temp, vel_temp, command);
+         //openarm.setPosForceSync(pos_temp, vel_temp, command);
 
         // setVel mode
-        //follower.setVel(vel_temp);
+        //openarm.setVel(vel_temp);
 
         // setVelSync mode
-       //follower.setVelSync(vel_temp);
+       //openarm.setVelSync(vel_temp);
 
         auto loop_end_time = std::chrono::steady_clock::now();
         auto t_elapsed = std::chrono::duration<double>(loop_end_time - loop_start_time).count();
@@ -126,7 +135,7 @@ int main(int argc, char **argv){
     }
 
     std::cout << "finished" << std::endl;
-    follower.disable();
+    openarm.disable();
 
     return 0;
 }

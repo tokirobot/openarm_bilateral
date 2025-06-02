@@ -46,22 +46,22 @@
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
 
-#define FOLLOWER_DEVICENAME0 "can0"
+#define openarm_DEVICENAME0 "can0"
 #define TICK 0.0009
 #define DOF 7
 #define PI 3.14159265
 #define VELSTEP 0.1
 #define VELSTART 0.1
 #define VELEND 1.2
-#define N 3
+#define N 7
 
 // Velocity controller gains and joint limits
-const double Kp_vel[NJOINTS-1] = {18.0, 17.5, 16.5, 17.0, 0.75, 0.75, 0.9};
-const double Ki_vel[NJOINTS-1] = {4.0, 6.0, 3.0, 4.0, 3.0, 3.0, 3.0};
-const double posmin[NJOINTS-1] = {-PI/6, PI/2 - PI/3, -PI/3, 0   , -PI/3, -PI/3, -PI/4};
-const double posmax[NJOINTS-1] = { PI/6, PI/2 + PI/3, PI/3 , PI/2,  PI/3,  PI/3,  PI/4};
-const std::vector<double> poskp = {380.0, 380.0, 380.0, 380.0, 50.0, 50.0, 50.0};
-const std::vector<double> poskd = {  4.0,   4.0,   4.0,   4.0,  1.4,  1.4,  1.5};
+const double Kp_vel[NJOINTS] = {18.0, 17.5, 16.5, 17.0, 0.75, 0.75, 0.9, 0.4};
+const double Ki_vel[NJOINTS] = {4.0, 6.0, 3.0, 4.0, 3.0, 3.0, 3.0, 2.0};
+const double posmin[NJOINTS] = {-PI/6, PI/2 - PI/3, -PI/3, 0   , -PI/3, -PI/3, -PI/4, -PI/6};
+const double posmax[NJOINTS] = { PI/6, PI/2 + PI/3, PI/3 , PI/2,  PI/3,  PI/3,  PI/4, 0.0};
+const std::vector<double> poskp = {380.0, 380.0, 380.0, 380.0, 50.0, 50.0, 50.0, 5};
+const std::vector<double> poskd = {  4.0,   4.0,   4.0,   4.0,  1.4,  1.4,  1.5, 0.5};
 
 std::atomic<bool> running{true};
 
@@ -79,30 +79,40 @@ int main(int argc, char **argv) {
     dyn.Init();
 
     // Initialize motors
-    DamiaoPort follower(
-        FOLLOWER_DEVICENAME0, 
-        {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
-         DM_Motor_Type::DM4340, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
-        {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07},
-        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17},
-        {true, true, true, true, true, true, true},
+    DamiaoPort openarm(
+        openarm_DEVICENAME0, 
+        {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
+         DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
+        {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
+        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
         Control_Type::MIT,
         CAN_MODE_FD
     );
 
-    follower.setZeroPosition();
-    follower.moveTorqueSync2(std::vector<double>(DOF, 0.0));
+
+    if(openarm.check_init_success() == true){
+        std::cout << "openarm init success!" << std::endl;
+    }else{
+        std::cout << "openarm init failed!" << std::endl;
+        std::exit(1);
+    }
+        
+    // enable torque
+    openarm.enable();
+
+    openarm.setZeroPosition();
+    openarm.moveTorqueSync2(std::vector<double>(NJOINTS, 0.0));
 
     // Initialize vectors
-    std::vector<double> joint_positions(DOF, 0.0);
-    std::vector<double> joint_velocities(DOF, 0.0);
-    std::vector<double> joint_torques(DOF, 0.0);
-    std::vector<double> grav_torques(DOF, 0.0);
-    std::vector<double> command(DOF, 0.0);
-    std::vector<double> velcommand(DOF, 0.0);
-    std::vector<double> kp_temp(DOF, 0.0), kd_temp(DOF, 0.0);
-    std::vector<double> pos_temp(DOF, 0.0), vel_temp(DOF, 0.0);
-    std::vector<double> goalpos(DOF, 0.0);
+    std::vector<double> joint_positions(NJOINTS, 0.0);
+    std::vector<double> joint_velocities(NJOINTS, 0.0);
+    std::vector<double> joint_torques(NJOINTS, 0.0);
+    std::vector<double> grav_torques(NJOINTS, 0.0);
+    std::vector<double> command(NJOINTS, 0.0);
+    std::vector<double> velcommand(NJOINTS, 0.0);
+    std::vector<double> kp_temp(NJOINTS, 0.0), kd_temp(NJOINTS, 0.0);
+    std::vector<double> pos_temp(NJOINTS, 0.0), vel_temp(NJOINTS, 0.0);
+    std::vector<double> goalpos(NJOINTS, 0.0);
 
     // Create velocity map for reference velocity ramping
     std::vector<double> vel_map;
@@ -118,7 +128,7 @@ int main(int argc, char **argv) {
     const double alpha = 0.008, kp_grav = 1.5;
 
     // Logging setup
-    std::ofstream csv_file("../data/velocity_torque.csv");
+    std::ofstream csv_file("src/openarm_bilateral/data/velocity_torque.csv");
     if (!csv_file.is_open()) {
         std::cerr << "Failed to open file for writing!" << std::endl;
         return 1;
@@ -137,13 +147,14 @@ int main(int argc, char **argv) {
 
     // Offset initialization per motion case
     switch (N) {
-        case 0: offangle = {0.0, PI/2.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
-        case 1: offangle = {PI/2.0, PI/2.0, 0.0, (2.0/3.0)*PI, 0.0, 0.0, 0.0}; break;
+        case 0: offangle = {0.0, PI/2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
+        case 1: offangle = {PI/2.0, PI/2.0, 0.0, (2.0/3.0)*PI, 0.0, 0.0, 0.0, 0.0}; break;
         case 2:
-        case 4: offangle = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
-        case 3: offangle = {0.0, PI/2.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
-        case 5: offangle = {0.0, 0.0, 0.0, PI/2.0, -PI/2.0, 0.0, 0.0}; break;
-        case 6: offangle = {0.0, 0.0, 0.0, PI/2.0, 0.0, 0.0, 0.0}; break;
+        case 4: offangle = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
+        case 3: offangle = {0.0, PI/2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
+        case 5: offangle = {0.0, 0.0, 0.0, PI/2.0, -PI/2.0, 0.0, 0.0, 0.0}; break;
+        case 6: offangle = {0.0, 0.0, 0.0, PI/2.0, 0.0, 0.0, 0.0, 0.0}; break;
+        case 7: offangle = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; break;
         default: break;
     }
 
@@ -154,44 +165,48 @@ int main(int argc, char **argv) {
         double ratio = static_cast<double>(step + 1) / nstep;
         for (int i = 0; i < DOF; ++i)
             goalpos[i] = (1.0 - ratio) * initangle[i] + ratio * offangle[i];
-        follower.setGoalPositionsSync(goalpos, poskp, poskd);
+        openarm.setGoalPositionsSync(goalpos, poskp, poskd);
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     std::cout << "loop start !!!" << std::endl;
 
-
-
 while (running) {
         auto loop_start_time = std::chrono::steady_clock::now();
 
-        for (size_t i = 0; i < DOF; ++i) {
-            joint_positions[i] = follower.motors_[i]->getPosition();
-            joint_velocities[i] = follower.motors_[i]->getVelocity();
-            joint_torques[i] = follower.motors_[i]->getTorque();
+        for (size_t i = 0; i < NJOINTS; ++i) {
+            joint_positions[i] = openarm.motors_[i]->getPosition();
+            joint_velocities[i] = openarm.motors_[i]->getVelocity();
+            joint_torques[i] = openarm.motors_[i]->getTorque();
         }
 
         dyn.GetGravity(joint_positions.data(), grav_torques.data());
         for (size_t i = 0; i < DOF; ++i)
             command[i] = kp_grav * grav_torques[i];
+        
+        command[NJOINTS - 1] = 0.0;
 
+        // low pass filtering 
         double ref_vel_raw = rotate_dir * vel_map[round_trip_counter];
         ref_vel_filtered = (1 - alpha) * ref_vel_filtered + alpha * ref_vel_raw;
-
+        
+        // torque based PI controller 
         velcommand[N] = Kp_vel[N] * (ref_vel_filtered - joint_velocities[N]);
         vel_command_integral += Ki_vel[N] * (ref_vel_filtered - joint_velocities[N]) * TICK;
         vel_command_integral = std::clamp(vel_command_integral, -4.0, 4.0);
         velcommand[N] += vel_command_integral;
         command[N] += velcommand[N];
-
-        for (int i = 0; i < NJOINTS - 1; ++i) {
+        
+        // select gain
+        for (int i = 0; i < NJOINTS; ++i) {
             kp_temp[i] = (i == N) ? 0 : poskp[i];
             kd_temp[i] = (i == N) ? 0 : poskd[i];
         }
+        
+        // drive motors
+        openarm.setMITSync(offangle, vel_temp, kp_temp, kd_temp, command);
 
-        follower.setMITSync(offangle, vel_temp, kp_temp, kd_temp, command);
-
-
+        // invert rotate direction
         if (joint_positions[N] > posmax[N]) {
             rotate_dir = -1.0;
             vel_command_integral = 0.0;
@@ -208,6 +223,8 @@ while (running) {
                 reached_max = reached_min = false;
             }
         }
+        
+        std::cout<< "joint_positions[8]"  <<joint_positions[NJOINTS -1] << std::endl;
 
         if (round_trip_counter >= round_trip) {
             std::cout << "finish constant speed test!!!" << std::endl;
@@ -251,7 +268,6 @@ while (running) {
             ;
     }
 
-
     vel_command_integral = 0;
     std::cout << "back to home position" << std::endl;
     for (int step = 0; step < nstep; ++step) {
@@ -259,18 +275,15 @@ while (running) {
             for (int i = 0; i < DOF; ++i) {
                     goalpos[i] = (1.0 - ratio) * joint_positions[i] + ratio * initangle[i];
             }
-            follower.setGoalPositionsSync(goalpos, poskp, poskd);
+            openarm.setGoalPositionsSync(goalpos, poskp, poskd);
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-
-    
-
 
     std::cout << "finished" << std::endl;
 
     std::cout << "you can use srcipt/torque_velocity.py !!!!!" << std::endl;
     csv_file.close();
-    follower.disable();
+    openarm.disable();
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     return 0;
 }

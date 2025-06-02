@@ -334,6 +334,11 @@ void MotorControl::recv_set_param_data() {
         uint8_t len;
         std::array<uint8_t, 64> data = canbus_.recv(id, len);
 
+        if (len == 0) {
+            std::cerr << "[WARN] No CAN data received." << std::endl;
+            return;
+        }
+
         if (canbus_.whichCAN() == CAN_MODE_CLASSIC) {
                 can_frame frame;
                 std::memset(&frame, 0, sizeof(frame));
@@ -582,8 +587,8 @@ void MotorControl::writeMotorParam(Motor& motor, DM_variable RID, double value) 
 }
 
 double MotorControl::readMotorParam(Motor& motor, int RID) {
-    const int max_retries = 5;
-    const int retry_interval_ms = 5;
+    const int max_retries = 2;
+    const int retry_interval_ms = 3;
 
     readRIDParam(motor, static_cast<DM_variable>(RID));
 
