@@ -26,9 +26,10 @@ from ament_index_python.packages import get_package_share_directory
 openarm_DEVICENAME0 = "can0"
 
 TICK = 0.01
-POSE0 = [0, 0, 0, 0, 0, 0, 0]
-KP1 = [35, 35, 25, 33, 6, 5, 4]
-KD = [1.2, 3.8, 1.0, 0.5, 0.2, 0.2, 0.2]
+POSE0 = [0, 0, 0, 0, 0, 0, 0, 0]
+KP1 = [35, 35, 25, 33, 6, 5, 4, 0]
+KD = [1.2, 3.8, 1.0, 0.5, 0.2, 0.2, 0.2, 0]
+DEFAULT_POSITIONS = [0.0, 0.0, 0.0, 1.5, 0.0, 0.0, 0.0, 0.0]
 
 
 def get_current_positions(openarm):
@@ -101,13 +102,13 @@ def validate_goal_positions(goal_positions, joint_limits):
 def hold(openarm, goal_positions):
     print("Holding position. Press Ctrl+C to return to zero position.")
     while True:
-        openarm.setMITSync(goal_positions, [0] * 7, KP1, KD, [0] * 7)
+        openarm.setMITSync(goal_positions, [0] * 8, KP1, KD, [0] * 8)
         openarm.get_present_status()
         time.sleep(TICK)  # Maintain the position at regular intervals
 
 def move(openarm, start, end):
-    # openarm.set_goal_positions_sync(start, KP1, KD)
-    time.sleep(3)
+
+    time.sleep(0.5)
 
     p0 = np.array(start)
     p1 = np.array(end)
@@ -116,7 +117,7 @@ def move(openarm, start, end):
     t_schedule = t0
     for t in np.linspace(0, 1, 1000):
         pose = (1-t) * p0 + t * p1
-        openarm.setMITSync(pose, [0] * 7, KP1, KD, [0] * 7)
+        openarm.setMITSync(pose, [0] * 8, KP1, KD, [0] * 8)
         openarm.get_present_status()
         t_schedule += TICK
         td = t_schedule - datetime.now().timestamp()
@@ -138,7 +139,7 @@ def move_to_zero(openarm, joint_limits):
         t_schedule = t0
         for t in np.linspace(0, 1, 1000):
             pose = (1-t) * p0 + t * p1
-            openarm.setMITSync(pose, [0] * 7, KP1, KD, [0] * 7)
+            openarm.setMITSync(pose, [0] * 8, KP1, KD, [0] * 8)
             openarm.get_present_status()
             t_schedule += TICK
             td = t_schedule - datetime.now().timestamp()
@@ -149,28 +150,54 @@ def move_to_zero(openarm, joint_limits):
 
 if __name__ == "__main__":
 
-    @click.command()
-    @click.option('--goal_positions', type=float, nargs=7, required=True, help="Specify 7 joint positions, space separated. E.g. --goal_positions 0.5 0.0 0.0 0.0 0.0 0.0 0.0")
 
+
+    @click.command()
+    @click.option(
+        '--goal_positions',
+        type=float,
+        nargs=8,
+        required=False,
+        default=DEFAULT_POSITIONS,
+        help="Specify 7 joint positions, space separated. E.g. --goal_positions 0.5 0.0 0.0 0.0 0.0 0.0 0.0 0.0"
+        )
     def main (goal_positions):
+        
+        print(f"Moving to joint positions: {goal_positions}")
+        print("\nHint: To specify joint positions, use:")
+        print("python script_name.py --goal_positions 0.5 0.0 0.0 0.0 0.0 0.0 0.0")
+        print(f"If omitted, the robot moves to the default position: {DEFAULT_POSITIONS}")
+
         # Initialize motor controller
         openarm = DamiaoPort(openarm_DEVICENAME0,
                                 [DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
                                 DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
                                 DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
-                                DM_Motor_Type.DM4310],
-                                [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07],
-                                [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17],
-                                [True, True, True, True, True, True, True],
-                                bitrate = 1000000,
-                                data_bitrate = 5000000,
+                                DM_Motor_Type.DM4310, DM_Motor_Type.DM3507],
+                                [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
+                                [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
                                 use_canfd = True
                                 )
+
+        #check openarm init_success flag is true or not
+        if openarm.init_success == True:
+            print("openarm init success")
+        else:
+            print("openarm init failed")
+            sys.exit(1)
+        
+        openarm.enable()
+       
+        # get currrent angle 
+        current_angle = np.array(get_current_positions(openarm))
 
         # Load joint limits
         joint_limits = load_joint_limits_from_urdf()
         goal_positions = list(goal_positions)
         print(f"Goal positions: {goal_positions}")
+
+        # move to zero position
+        # move_to_zero(openarm, joint_limits)
 
         if not validate_goal_positions(goal_positions, joint_limits):
             print("One or more goal positions are invalid. Exiting.")
@@ -178,7 +205,7 @@ if __name__ == "__main__":
             return
 
         try:
-            move(openarm, POSE0, goal_positions)
+            move(openarm, current_angle , goal_positions)
         except KeyboardInterrupt:
             print("Key Pressed")
             move_to_zero(openarm, joint_limits)
@@ -190,6 +217,7 @@ if __name__ == "__main__":
             move_to_zero(openarm, joint_limits)
             
         print("Synchronous movement complete.")
+
         # Disable motors after movement
         print("Disabling motors and performing CANbus shutdown")
         openarm.disable()

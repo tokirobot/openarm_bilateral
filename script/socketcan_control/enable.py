@@ -52,27 +52,13 @@ if __name__ == "__main__":
             sys.exit(1)
 
         openarm.enable()
-        
-        try:
-            while True:
-                openarm.set_goal_positions_sync(Pose, Kp, Kd)
-                # openarm.controlMIT(zeros, zeros, zeros, zeros, zeros)
-                status = openarm.get_present_status()
+        print("openarm enabled !!!!!")
 
-                for i, motor_status in enumerate(status):
-                    print(f"[Motor {i}] goal_pos: {motor_status[0]:.3f}, "
-                          f"goal_tau: {motor_status[1]:.3f}, "
-                          f"pos: {motor_status[2]:.3f}, "
-                          f"vel: {motor_status[3]:.3f}, "
-                          f"tau: {motor_status[4]:.3f}, "
-                          f"tmos: {motor_status[5]}, "
-                          f"trotor: {motor_status[6]}")
-                sleep(0.001)
-                print("="*90)
-        except KeyboardInterrupt:
-            print("Interrupted by user. Disabling motors...")
-            openarm.disable()
-            print("Shutdown complete.")
+        sleep(3)
+
+        openarm.disable()
+        print("openarm disabled!")
 
     main()
+
 

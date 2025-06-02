@@ -50,11 +50,17 @@ def main():
         ],
         [0x02],
         [0x12],
-        [True],
-        bitrate=1000000,
-        data_bitrate=5000000,
         use_canfd=True
     )
+
+    #check openarm init_success flag is true or not
+    if openarm.init_success == True:
+        print("openarm init success")
+    else:
+        print("openarm init failed")
+        sys.exit(1)
+
+    openarm.enable()
 
     control_mode = choose_control_mode()
 
@@ -71,7 +77,6 @@ def main():
             print(f"[Motor {i}] Control mode switch failed.")
 
     openarm.disable()
-    print("done!!!!!")
 
 if __name__ == "__main__":
     main()

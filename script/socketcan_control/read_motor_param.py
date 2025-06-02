@@ -17,8 +17,8 @@ import numpy as np
 from DM_SocketCANFD import *
 from enum import IntEnum
 import click
-
-CAN_DEVICE_NAME = "can1"
+import sys
+CAN_DEVICE_NAME = "can0"
 NUMJOINT = 1
 zeros = np.zeros(NUMJOINT)
 
@@ -43,16 +43,20 @@ def main(slaveid, masterid):
 
     openarm = DamiaoPort(
         CAN_DEVICE_NAME,
-        [DM_Motor_Type.DM4340],
+        [DM_Motor_Type.DM3507],
         [slaveid_int],
         [masterid_int],
-        [True],
-        bitrate=1000000,
-        data_bitrate=5000000,
         use_canfd=True
     )
-
-
+    
+    #check openarm init_success flag is true or not
+    if openarm.init_success == True:
+        print("openarm init success")
+    else:
+        print("openarm init failed")
+        sys.exit(1)
+   
+    openarm.enable()
 
     print("---- Start Reading All Motor Parameters (original order) ----")
 

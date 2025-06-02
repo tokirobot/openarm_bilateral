@@ -73,11 +73,17 @@ if __name__ == "__main__":
                                DM_Motor_Type.DM4310, DM_Motor_Type.DM3507],
                               [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
                               [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
-                              [True, True, True, True, True, True, True, True],
-                              bitrate = 1000000,
-                              data_bitrate = 5000000,
                               use_canfd = True
                               )
+
+        #check openarm init_success flag is true or not
+        if openarm.init_success == True:
+            print("openarm init success")
+        else:
+            print("openarm init failed")
+            sys.exit(1)
+        
+        openarm.enable()
 
         # check initialise has completed
         if not openarm.init_success:

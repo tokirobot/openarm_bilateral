@@ -133,7 +133,7 @@ bool Control::DoControl()
 
         auto start_time = std::chrono::steady_clock::now();
 
-        std::vector<double> kp_temp = {250, 220.0, 250.0, 250.0, 25.0, 28.0, 29.0, 0.0};
+        std::vector<double> kp_temp = {250, 220.0, 250.0, 250.0, 25.0, 28.0, 31.0, 0.0};
         std::vector<double> kd_temp = {3.5, 3.0, 4.0, 4.0, 0.3, 0.17, 0.3, 0.0};  
 
         if(role_ == ROLE_FOLLOWER){
@@ -422,7 +422,7 @@ bool Control::DoControl()
                         dynamics_l_->GetMassMatrixDiagonal(response_->position.data(), inertia_diag);
 
                         for (int i = 0; i < NJOINTS; i++) {
-                                joint_torque[i] = gravity[i]*1.5 + friction[i]*0.4 + colioli[i]*0;
+                                joint_torque[i] = gravity[i]*1.5 + friction[i]*0.5 + colioli[i]*0;
                         }
 
                         ComputeMotorTorque(joint_torque, motor_torque);
@@ -456,8 +456,8 @@ bool Control::DoControl()
 
                         }
 
-                        std::vector<double> kp_temp = {300, 250.0, 250.0, 250.0, 30.0, 30.0, 30.0, 7.85};
-                        std::vector<double> kd_temp = {4.0, 4.0, 4.0, 4.0, 0.7, 0.7, 0.7, 0.4};
+                        std::vector<double> kp_temp = {300, 250.0, 250.0, 250.0, 30.0, 30.0, 30.0, 0.0};
+                        std::vector<double> kd_temp = {4.0, 4.0, 4.0, 4.0, 0.7, 0.7, 0.7, 0.00};
 
                         if(role_ == ROLE_FOLLOWER){
                                 reference_->position[NJOINTS - 1] *= GRIP_SCALE;
@@ -583,8 +583,8 @@ void Control::ComputeFriction(const double *velocity, double *friction)
                 ComputeJointPosition(positions_now.data(), response_->position.data());
                 ComputeJointVelocity(velocities_now.data(), response_->velocity.data());
 
-                std::vector<double> kp_temp = {120, 260.0, 110.0, 260.0, 10.0, 60.0, 10.0, 1.0};
-                std::vector<double> kd_temp = {2.3, 1.5, 1.5, 1.5, 0.3, 0.2, 0.3, 0.01};
+                std::vector<double> kp_temp = {120, 260.0, 110.0, 260.0, 10.0, 60.0, 10.0, 0.0};
+                std::vector<double> kd_temp = {2.3, 1.5, 1.5, 1.5, 0.3, 0.2, 0.3, 0.0};
 
                 for (int step = 0; step < nstep; step++) {
                         a = static_cast<double>(step + 1) / nstep;

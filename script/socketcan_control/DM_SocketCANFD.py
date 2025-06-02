@@ -46,7 +46,8 @@ from enum import IntEnum
 from struct import unpack
 from struct import pack
 
-
+import pdb
+import logging
 
 class Motor:
     def __init__(self, MotorType, SlaveID, MasterID):
@@ -130,7 +131,7 @@ class MotorControl:
         [12.5, 45, 10],  # DMH6215
         [12.5, 45, 10]   # DMG6220
     ]
-    def __init__(self, channel: str, bitrate: int = 1000000, use_canfd: bool = False):
+    def __init__(self, channel: str, use_canfd: bool = True):
         """
         MotorControl constructor with CAN FD support
         :param channel: CAN interface channel name (e.g., 'can0')
@@ -146,14 +147,14 @@ class MotorControl:
                 channel=channel,
                 interface='socketcan',
                 fd=True,
-                bitrate=bitrate,
+                bitrate=1000000,
                 data_bitrate=5000000  # You may configure this separately if needed
             )
         else:
             self.canbus = can.interface.Bus(
                 channel=channel,
                 interface='socketcan',
-                bitrate=bitrate
+                bitrate=1000000
             )
 
 
@@ -591,9 +592,12 @@ class MotorControl:
         can_id_l = Motor.SlaveID & 0xff
         can_id_h = (Motor.SlaveID >> 8) & 0xff
         data_buf = np.array([np.uint8(can_id_l), np.uint8(can_id_h), 0xAA] + [0x00]*5, np.uint8)
+        # pdb.set_trace()
+        sleep(3)
         self.disable(Motor)
+        sleep(3)
         self.__send_data(0x7FF, data_buf)
-        sleep(0.1)
+        sleep(3)
 
     def change_limit_param(self, Motor_Type, PMAX, VMAX, TMAX):
         """
@@ -833,39 +837,132 @@ class Control_Type(IntEnum):
     VEL = 3
     Torque_Pos = 4
 
+# class DamiaoPort:
+    # def __init__(self, device, types, can_ids, master_ids, motor_with_torque, control_mode=Control_Type.MIT, use_canfd = True):
+        # self.device = device
+        # self.types = types
+        # self.can_ids = can_ids
+        # self.master_ids = master_ids
+        # self.control = MotorControl(self.device, use_canfd)
+        # self.motors = [Motor(type, can_id, master_id) for type, can_id, master_id in zip(types, can_ids, master_ids)]
+        # self.stat_data = []
+        # self.stat_time = []
+        # self.logger = logging.getLogger(self.__class__.__name__)
+        # self.logger.setLevel(logging.INFO)
+
+        # if not self.logger.handlers:
+            # handler = logging.StreamHandler()
+            # formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
+            # handler.setFormatter(formatter)
+            # self.logger.addHandler(handler)
+
+        # self.init_success = True
+        
+        # # Check lengths of lists
+        # if not (len(types) == len(can_ids) == len(master_ids) == len(motor_with_torque)):
+            # self.logger.error("Lengths of types, can_ids, master_ids, and motor_with_torque must match!")
+            # self.init_success = False
+            # return        
+
+        # for idx, motor in enumerate(self.motors, start=1):
+            # self.control.addMotor(motor)
+            # mst_id = self.control.read_motor_param(motor, DM_variable.MST_ID)
+            # esc_id = self.control.read_motor_param(motor, DM_variable.ESC_ID)
+            # can_br = self.control.read_motor_param(motor, DM_variable.can_br)
+
+            # if can_br == 9:      # canfd baudrate 5Mbps
+                # self.logger.info(f"NOW CANFD MDOE")
+            # elif can_br == 4:    # can2.0 baudrate 1Mbps
+                # self.logger.info(f"NOW CAN2.0 MDOE")
+
+            # motor_type_name = DM_Motor_Type(motor.MotorType).name
+            # if mst_id == motor.MasterID and esc_id == motor.SlaveID:
+                # self.logger.info(f"Motor type {motor_type_name} (MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)}) found")
+                # # self.control.enable(motor)
+            # else:
+                # self.logger.warning(f"Motor {idx}: type {motor_type_name} (MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)}) not found, read MST_ID: {mst_id}, ESC_ID: {esc_id}")
+                # self.logger.warning("Hint: Check CAN or CANFD configuration, bitrate, and ID assignments.")
+                # for added_motor in self.motors:
+                    # pass
+                    # # self.control.disable(added_motor)
+                # self.init_success = False
+                # break  
+
+
 class DamiaoPort:
-    def __init__(self, device, types, can_ids, master_ids, motor_with_torque, control_mode=Control_Type.MIT, bitrate = 1000000, data_bitrate = 5000000, use_canfd = True):
+    def __init__(self, device, types, can_ids, master_ids, control_mode=Control_Type.MIT, use_canfd=True):
         self.device = device
         self.types = types
         self.can_ids = can_ids
         self.master_ids = master_ids
-        self.control = MotorControl(self.device, bitrate, use_canfd )
+        self.control = MotorControl(self.device, use_canfd)
         self.motors = [Motor(type, can_id, master_id) for type, can_id, master_id in zip(types, can_ids, master_ids)]
         self.stat_data = []
         self.stat_time = []
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.INFO)
+
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+
         self.init_success = True
 
-        # Check lengths of lists
-        if not (len(types) == len(can_ids) == len(master_ids) == len(motor_with_torque)):
-            print("Error: Lengths of types, can_ids, master_ids, and motor_with_torque must match!")
-            self.init_success = False
-            return        
-
-        for idx, motor in enumerate(self.motors, start=1):
-            self.control.addMotor(motor)
-            mst_id = self.control.read_motor_param(motor, DM_variable.MST_ID)
-            esc_id = self.control.read_motor_param(motor, DM_variable.ESC_ID)
-            if mst_id == motor.MasterID and esc_id == motor.SlaveID:
-                print(f"Motor type {motor.MotorType} (MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)}) found")
-                self.control.enable(motor)
-            else:
-                print(f"Motor {idx}: type {motor.MotorType} (MasterID: {motor.MasterID}, SlaveID: {motor.SlaveID}) not found, read MST_ID: {mst_id}, ESC_ID: {esc_id}")
-
-                print("Hint: Check CAN or CANFD configuration, bitrate, and ID assignments.")
-                for added_motor in self.motors:
-                    self.control.disable(added_motor)
+        try:
+            if not (len(types) == len(can_ids) == len(master_ids)):
+                self.logger.error("Lengths of types, can_ids, master_ids must match!")
                 self.init_success = False
-                break  
+                return
+
+            for idx, motor in enumerate(self.motors, start=1):
+                self.control.addMotor(motor)
+                try:
+                    mst_id = self.control.read_motor_param(motor, DM_variable.MST_ID)
+                    esc_id = self.control.read_motor_param(motor, DM_variable.ESC_ID)
+                    can_br = self.control.read_motor_param(motor, DM_variable.can_br)
+                    if mst_id is None or esc_id is None or can_br is None:
+                        self.logger.error(f"Error: Failed to read motor parameters for {idx}th motor (MotorType: {DM_Motor_Type(motor.MotorType).name}, MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)})")
+                        self.logger.warning("1. Check CAN communication.")
+                        self.logger.warning("2. Confirm that MasterID and SlaveID are correct and motor is powered on.")
+                        self.logger.warning("3. Supported CAN bitrates: CAN2.0 at 1Mbps, CANFD at 5Mbps.")
+                        self.logger.warning("4. Verify wiring and connector status.")
+                        self.init_success = False
+                        return
+
+                except Exception as e:
+                    self.logger.error(f"Error reading motor parameters: {e}")
+                    self.init_success = False
+                    return
+
+                if can_br == 9:
+                    self.logger.info("NOW CANFD MODE")
+                elif can_br == 4:
+                    self.logger.info("NOW CAN2.0 MODE")
+                else:
+                    self.logger.warning("Supported CAN bitrates are: CAN2.0 at 1Mbps and CANFD at 5Mbps.")
+
+                motor_type_name = DM_Motor_Type(motor.MotorType).name
+                if mst_id == motor.MasterID and esc_id == motor.SlaveID:
+                    self.logger.info(f"Motor type {motor_type_name} (MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)}) found")
+                else:
+                    master_status = "OK" if mst_id == motor.MasterID else f"Mismatch (expected {hex(motor.MasterID)}, got {hex(mst_id)})"
+                    slave_status = "OK" if esc_id == motor.SlaveID else f"Mismatch (expected {hex(motor.SlaveID)}, got {hex(esc_id)})"
+                    self.logger.warning(
+                    f"{idx}th motor : type {motor_type_name} "
+                    f"(MasterID: {hex(motor.MasterID)}, SlaveID: {hex(motor.SlaveID)}) not found. "
+                    f"MasterID status: {master_status}, SlaveID status: {slave_status}"
+                    )
+                    self.logger.warning("Hint: Check CAN or CANFD configuration, bitrate, and ID assignments.")
+                    for added_motor in self.motors:
+                        pass
+                    self.init_success = False
+                    return
+
+        except Exception as e:
+            self.logger.error(f"Unexpected error in DamiaoPort init: {e}")
+            self.init_success = False
 
 
     def get_present_status(self):
@@ -886,6 +983,10 @@ class DamiaoPort:
     def save_status(self, filename):
         np.savez(filename, np.array(self.stat_time), np.array(self.stat_data))
 
+    def enable(self):
+        for Motor in self.motors:
+            self.control.enable(Motor)
+
     def disable(self):
         for Motor in self.motors:
             self.control.disable(Motor)
@@ -905,56 +1006,6 @@ class DamiaoPort:
         for Motor in self.motors:
             self.control.enable(Motor)
         return 0
-
-    async def move_towards(self, goal_positions, kps, kds):
-        for Motor, goal_position, kp, kd in zip(self.motors, goal_positions, kps, kds):
-            delta = goal_position - Motor.getPosition()
-            v = Motor.getVelocity()
-            tau = kp * delta - kd * v
-            Motor.goal_position = goal_position
-            Motor.goal_tau = tau
-            self.control.controlMIT(Motor, 0, 0, 0, 0, tau)
-            await asyncio.sleep(0.00003)
-
-    def move_regressor_sync(self, regs, search_range, search_step, goal_positions, kps, kds):
-        TORQUE_SCALER=30
-        if len(self.stat_data) == 0:
-            return self.move_towards_sync(goal_positions, kps, kds)
-        for Motor, reg, goal_position, kp, kd, stat in zip(
-                self.motors, regs, goal_positions, kps, kds, self.stat_data[-1]):
-            pos = Motor.getPosition()
-            vel = Motor.getVelocity()
-            delta = goal_position - pos
-            goal_tau = kp * delta - kd * vel
-            _goal_pos, _goal_tau, _pos, _vel, _tau = stat
-            x = np.array([[_pos, _vel, _tau, _goal_pos, _goal_tau],
-                          [pos, vel, Motor.getTorque(), goal_position, goal_tau]])
-            x /= np.array([[np.pi, 10, TORQUE_SCALER, np.pi, TORQUE_SCALER]])
-            xs = []
-            for tau in np.linspace(goal_tau/TORQUE_SCALER - search_range,
-                                   goal_tau/TORQUE_SCALER + search_range,
-                                   num=search_step):
-                x_ = x.copy()
-                x_[0,4] = tau
-                xs.append(x_.flatten())
-            h = reg.predict(xs)
-            diff = h - goal_position
-            tau = TORQUE_SCALER * xs[np.argmin(diff ** 2)][4]
-            goal_tau = tau
-            Motor.goal_position = goal_position
-            Motor.goal_tau = goal_tau
-            self.control.controlMIT(Motor, 0, 0, 0, 0, goal_tau)
-            sleep(0.00003)
-
-    def move_towards_sync(self, goal_positions, kps, kds):
-        for Motor, goal_position, kp, kd in zip(self.motors, goal_positions, kps, kds):
-            delta = goal_position - Motor.getPosition()
-            v = Motor.getVelocity()
-            tau = kp * delta - kd * v
-            Motor.goal_position = goal_position
-            Motor.goal_tau = tau
-            self.control.controlMIT(Motor, 0, 0, 0, 0, tau)
-            sleep(0.00003)
 
     def set_goal_torque_sync(self, goal_taus):
         for Motor, goal_tau in zip(self.motors, goal_taus):

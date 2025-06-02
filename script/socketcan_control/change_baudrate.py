@@ -18,7 +18,7 @@ from DM_SocketCANFD import *
 import click
 
 CAN_DEVICE_NAME = "can0"
-SAVE_MOTOR_PARAMETER_PERMANENTLY = False
+SAVE_MOTOR_PARAMETER_PERMANENTLY = True
 
 if __name__ == "__main__":
     print(
@@ -47,19 +47,26 @@ if __name__ == "__main__":
         print(
             "CAUTION: Motor parameters can be modified up to 10,000 times. Be sure not to use this command too often!"
         )
+        # openarm = DamiaoPort(
+            # CAN_DEVICE_NAME,
+            # [
+                # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
+                # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
+                # DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
+                # DM_Motor_Type.DM4310, DM_Motor_Type.DM3507
+            # ],
+            # [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
+            # [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
+            # use_canfd =True
+        # )
+
         openarm = DamiaoPort(
             CAN_DEVICE_NAME,
             [
-                DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
-                DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
-                DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
-                DM_Motor_Type.DM4310, DM_Motor_Type.DM3507
+                DM_Motor_Type.DM3507
             ],
-            [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
-            [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
-            [True, True, True, True, True, True, True, True],
-            bitrate = 1000000,
-            data_bitrate = 5000000,
+            [0x08],
+            [0x18],
             use_canfd =True
         )
 

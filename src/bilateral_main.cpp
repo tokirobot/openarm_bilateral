@@ -186,6 +186,9 @@ class AdminNode: public rclcpp::Node
 
         rclcpp::TimerBase::SharedPtr timer_;
 
+        std::string arm_type_;
+        std::string control_type_;
+
         sensor_msgs::msg::JointState response_l;
         sensor_msgs::msg::JointState response_f;
 
@@ -195,7 +198,7 @@ class AdminNode: public rclcpp::Node
         const double Ts = 1.0/FREQUENCY;
 
         public:
-        AdminNode(Control *control_l, Control *control_f) : Node("AdminNode"), control_l_(control_l), control_f_(control_f)
+        AdminNode(Control *control_l, Control *control_f, std::string arm_type, std::string control_type) : Node("AdminNode"), control_l_(control_l), control_f_(control_f), arm_type_(arm_type), control_type_(control_type)
         {
                 setup_all_publishers();
 
@@ -248,7 +251,8 @@ class AdminNode: public rclcpp::Node
                 //}
                 //}               
 
-                for (int i = 0; i < NJOINTS; ++i) {
+                if(control_type_ == "bilate"){
+                        for (int i = 0; i < NJOINTS; ++i) {
                         response_l.position[i] = std::clamp(response_l.position[i], position_limit_min_L[i], position_limit_max_L[i]);
                         //response_l.velocity[i] = std::clamp(response_l.velocity[i], -velocity_limit_l[i],  velocity_limit_l[i]);
                         //response_l.effort[i]   = std::clamp(response_l.effort[i],   -effort_limit_l[i],    effort_limit_l[i]);
@@ -256,6 +260,7 @@ class AdminNode: public rclcpp::Node
                         response_f.position[i] = std::clamp(response_f.position[i], position_limit_min_F[i], position_limit_max_F[i]);
                         //response_f.velocity[i] = std::clamp(response_f.velocity[i], -velocity_limit_F[i],  velocity_limit_F[i]);
                         //response_f.effort[i]   = std::clamp(response_f.effort[i],   -effort_limit_F[i],    effort_limit_F[i]);
+                }
                 }
 
                 control_f_->SetReference(&response_l);
@@ -334,9 +339,9 @@ int main(int argc, char **argv)
 
         DamiaoPort* arm_l = new DamiaoPort(can_dev_l, 
                         {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
-                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
+                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
-                        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0,18},
+                        {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         {true, true, true, true, true, true, true, true},
                         Control_Type::MIT,
                         CAN_MODE_FD
@@ -344,7 +349,7 @@ int main(int argc, char **argv)
 
         DamiaoPort* arm_f = new DamiaoPort(can_dev_f, 
                         {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
-                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
+                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         {true, true, true, true, true, true, true, true},
@@ -414,7 +419,7 @@ int main(int argc, char **argv)
 
         auto leader_node = std::make_shared<LeaderNode>(control_l,arm_type, control_mode, options);
         auto follower_node = std::make_shared<FollowerNode>(control_f, arm_type, control_mode, options);
-        auto admin_node = std::make_shared<AdminNode>(control_l, control_f);
+        auto admin_node = std::make_shared<AdminNode>(control_l, control_f, arm_type, control_mode);
 
         exec.add_node(leader_node);
         exec.add_node(follower_node);

@@ -21,7 +21,7 @@ from urdf_parser_py.urdf import URDF
 from ament_index_python.packages import get_package_share_directory
 import os
 
-openarm_DEVICENAME = "can1"
+openarm_DEVICENAME = "can0"
 POSE0 = [0, 0, 0, 0, 0, 0, 0, 0]
 K0 = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -65,6 +65,15 @@ if __name__ == "__main__":
     @click.option('--set_zero_position', is_flag=True, default=False, help="Load joint limits from file.")
     @click.option('--load_limits', is_flag=True, default=False, help="Load joint limits from file.")
     def main(set_zero_position, load_limits):
+
+        if not set_zero_position and not load_limits:
+            print("Hint: Please specify at least one of the options: --set_zero_position or --load_limits.")
+            print("Example:")
+            print("  python calibrate.py --set_zero_position")
+            print("  or")
+            print("  python calibrate.py --load_limits")
+            return
+
         print(f"using {openarm_DEVICENAME}")
         openarm = DamiaoPort(openarm_DEVICENAME,
                               [DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
@@ -73,20 +82,18 @@ if __name__ == "__main__":
                                DM_Motor_Type.DM4310, DM_Motor_Type.DM3507],
                               [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
                               [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
-                              [True, True, True, True, True, True, True, True],
-                              bitrate = 1000000,
-                              data_bitrate = 5000000,
                               use_canfd = True
                               )
        
-        # check initialise has completed
-        if not openarm.init_success:
-            print("Error: Initialization failed due to mOtor ID mismatch.")
-            print("All motors disabled and CAN bus shutdown.")
-            import sys
-            sys.exit(1)
+        #check openarm init_success flag is true or not
+        if openarm.init_success == True:
+            print("openarm init success")
         else:
-            print("Initialization successful")
+            print("openarm init failed")
+            sys.exit(1)
+
+        openarm.enable()
+
         if set_zero_position:
             openarm.disable()
             openarm.set_zero_position()
