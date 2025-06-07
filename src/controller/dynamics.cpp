@@ -80,6 +80,8 @@ bool Dynamics::Init(std::vector<double> grav_vector, std::vector<double> bias)
         coriolis_forces.resize(kdl_chain.getNrOfJoints());
         gravity_forces.resize(kdl_chain.getNrOfJoints());
         inertia_matrix.resize(kdl_chain.getNrOfJoints());
+        
+        std::cout << "joint num " << kdl_chain.getNrOfJoints() << std::endl;
 
         solver = std::make_unique<KDL::ChainDynParam>(kdl_chain, KDL::Vector(0.0, 0.0, -9.81));
 

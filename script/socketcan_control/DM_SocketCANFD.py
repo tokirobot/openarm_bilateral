@@ -593,11 +593,11 @@ class MotorControl:
         can_id_h = (Motor.SlaveID >> 8) & 0xff
         data_buf = np.array([np.uint8(can_id_l), np.uint8(can_id_h), 0xAA] + [0x00]*5, np.uint8)
         # pdb.set_trace()
-        sleep(3)
+        sleep(0.2)
         self.disable(Motor)
-        sleep(3)
+        sleep(0.2)
         self.__send_data(0x7FF, data_buf)
-        sleep(3)
+        sleep(0.2)
 
     def change_limit_param(self, Motor_Type, PMAX, VMAX, TMAX):
         """

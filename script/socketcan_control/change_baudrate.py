@@ -18,7 +18,7 @@ from DM_SocketCANFD import *
 import click
 
 CAN_DEVICE_NAME = "can0"
-SAVE_MOTOR_PARAMETER_PERMANENTLY = True
+SAVE_MOTOR_PARAMETER_PERMANENTLY =True
 
 if __name__ == "__main__":
     print(
@@ -47,6 +47,7 @@ if __name__ == "__main__":
         print(
             "CAUTION: Motor parameters can be modified up to 10,000 times. Be sure not to use this command too often!"
         )
+
         # openarm = DamiaoPort(
             # CAN_DEVICE_NAME,
             # [
@@ -67,9 +68,10 @@ if __name__ == "__main__":
             ],
             [0x08],
             [0x18],
-            use_canfd =True
+            use_canfd =False
         )
-
+        
+        openarm.enable()
         addr = DM_variable.can_br
         bval = baudrates.index(baudrate)
         for i, motor in enumerate(openarm.motors, start=1):

@@ -50,11 +50,11 @@ int main() {
         signal(SIGINT, signalHandler);
 
         std::string description_path = ament_index_cpp::get_package_share_directory(
-                        "openarm_bimanual_description"
+                        "openarm_v1_check_description"
                         );
-        auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
-        std::string chain_root_link = "pedestal_link";
-        std::string left_leaf_link = "right_link8";
+        auto urdf_path = description_path + "/urdf/openarm_v1_check.urdf";
+        std::string chain_root_link = "dummy_link";
+        std::string left_leaf_link = "oparm_link8_1";
         auto dyn = Dynamics(urdf_path, chain_root_link, left_leaf_link);
         dyn.Init();
         std::cout << description_path << std::endl;
@@ -80,7 +80,7 @@ int main() {
 
 
         openarm.moveTorqueSync2({0, 0, 0, 0, 0, 0, 0, 0});
-        const double kp_grav = 1.5;
+        const double kp_grav = 1.0;
         // const double kp_grav = 0.5;
         std::vector<double> joint_positions(NJOINTS, 0.0);
         std::vector<double> grav_torques(DOF, 0.0);
@@ -91,14 +91,16 @@ int main() {
 
                 for(size_t i = 0; i < NJOINTS; ++i){
                         joint_positions[i] = openarm.motors_[i]->getPosition();
-                        std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
+                        //std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
                 }
                 dyn.GetGravity(joint_positions.data(), grav_torques.data());
 
                 for(size_t i = 0; i < DOF; ++i){
                         command[i] = kp_grav * grav_torques[i];
-                        //std::cout << "command[" << i << "] = " << command[i] << std::endl;
+                        std::cout << "command[" << i << "] = " << command[i] << std::endl;
                 }
+                command[0] *= (1.0/1.4);
+                command[1] *= (1.0/1.4);
                 openarm.moveTorqueSync2(command);
                 auto loop_end_time = std::chrono::steady_clock::now();
                 std::chrono::duration<double> t_elapsed = loop_end_time - loop_start_time;

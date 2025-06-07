@@ -43,7 +43,7 @@ def main(slaveid, masterid):
 
     openarm = DamiaoPort(
         CAN_DEVICE_NAME,
-        [DM_Motor_Type.DM3507],
+        [DM_Motor_Type.DM4340],
         [slaveid_int],
         [masterid_int],
         use_canfd=True

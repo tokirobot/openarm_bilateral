@@ -40,18 +40,33 @@
 #include "../src/controller/dynamics.hpp"
 
 int main(){
+
   std::string description_path = ament_index_cpp::get_package_share_directory(
       "openarm_bimanual_description"
   );
+
+  std::string description_v1_path = ament_index_cpp::get_package_share_directory(
+      "openarm_v1_check_description"
+  );
+  
   auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
+  auto urdf_v1_path = description_v1_path + "/urdf/openarm_v1_check.urdf";
   std::string chain_root_link = "pedestal_link";
   std::string left_leaf_link = "left_link8";
   std::string right_leaf_link = "right_link8";
-  auto dyn = Dynamics(urdf_path, chain_root_link, left_leaf_link);
+  std::string chain_v1_root_link = "dummy_link";
+  std::string right_v1_leaf_link = "oparm_link8_1";
+
+  auto dyn = Dynamics(urdf_path, chain_root_link, right_leaf_link);
+  auto dyn_v1 = Dynamics(urdf_v1_path, chain_v1_root_link, right_v1_leaf_link);
   dyn.Init();
+  dyn_v1.Init();
 
   auto q = std::vector<double>(7, 0.0);
   auto g = std::vector<double>(7, -1.0); // -1.0 for dummy
+
+  auto q_v1 = std::vector<double>(7, 0.0);
+  auto g_v1 = std::vector<double>(7, -1.0); // -1.0 for dummy
 
   std::cout << "With default 0 configuration:" << std::endl;
   dyn.GetGravity(q.data(), g.data());
@@ -59,10 +74,21 @@ int main(){
     std::cout << "gravity [" << i << "] = " << g[i] << std::endl;
   }
 
+  dyn_v1.GetGravity(q_v1.data(), g_v1.data());
+  for(size_t i = 0; i < 7; ++i){
+    std::cout << "gravity_v1 [" << i << "] = " << g_v1[i] << std::endl;
+  }
+
   std::cout << "If only q[0] = 1.570795" << std::endl;
-  q[0] = 1.570795;
+  q[3] = 3.141592/2.0;
+  q_v1[3] = 1.570795;
   dyn.GetGravity(q.data(), g.data());
   for(size_t i = 0; i < 7; ++i){
     std::cout << "gravity [" << i << "] = " << g[i] << std::endl;
+  }
+
+  dyn_v1.GetGravity(q_v1.data(), g_v1.data());
+  for(size_t i = 0; i < 7; ++i){
+    std::cout << "gravity_v1 [" << i << "] = " << g_v1[i] << std::endl;
   }
 }
