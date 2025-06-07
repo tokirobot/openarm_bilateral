@@ -46,7 +46,7 @@ def main(slaveid, masterid):
         [DM_Motor_Type.DM4340],
         [slaveid_int],
         [masterid_int],
-        use_canfd=True
+        use_canfd=False
     )
     
     #check openarm init_success flag is true or not

@@ -66,8 +66,8 @@ if __name__ == "__main__":
             [
                 DM_Motor_Type.DM3507
             ],
-            [0x08],
-            [0x18],
+            [0x01],
+            [0x11],
             use_canfd =False
         )
         
