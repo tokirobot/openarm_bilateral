@@ -41,7 +41,7 @@ def sigmoid_friction_model(v, Fc, k, Fv, Fo):
     return Fc * (2 / (1 + np.exp(-k * v)) - 1) + Fv * v + Fo  # symmetric sigmoid（-1 ~ +1）
 
 # Data loading
-df = pd.read_csv("data/velocity_torque.csv")
+df = pd.read_csv("../data/velocity_torque.csv")
 x_data = df["actual_velocity"].values
 y_data = df["velcommand"].values
 

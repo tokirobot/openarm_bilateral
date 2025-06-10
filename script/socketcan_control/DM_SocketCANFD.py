@@ -621,7 +621,7 @@ class MotorControl:
         """
         Change a specific parameter value in the motor.
         """
-        max_retries = 20
+        max_retries = 10
         retry_interval = 0.05
         self.__write_motor_param(Motor, RID, data)
         for _ in range(max_retries):

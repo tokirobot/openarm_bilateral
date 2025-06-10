@@ -53,9 +53,11 @@
 #define VELSTEP 0.1
 #define VELSTART 0.1
 #define VELEND 1.2
-#define N 7
+#define N 4
 
 // Velocity controller gains and joint limits
+//const double Kp_vel[NJOINTS] = {18.0, 17.5, 16.5, 17.0, 0.75, 0.75, 0.9, 0.4};
+//const double Ki_vel[NJOINTS] = {4.0, 6.0, 3.0, 4.0, 3.0, 3.0, 3.0, 2.0};
 const double Kp_vel[NJOINTS] = {18.0, 17.5, 16.5, 17.0, 0.75, 0.75, 0.9, 0.4};
 const double Ki_vel[NJOINTS] = {4.0, 6.0, 3.0, 4.0, 3.0, 3.0, 3.0, 2.0};
 const double posmin[NJOINTS] = {-PI/6, PI/2 - PI/3, -PI/3, 0   , -PI/3, -PI/3, -PI/4, -PI/6};
@@ -125,7 +127,7 @@ int main(int argc, char **argv) {
     bool reached_min = false, reached_max = false;
     double vel_command_integral = 0.0;
     double ref_vel_filtered = 0.0;
-    const double alpha = 0.008, kp_grav = 1.5;
+    const double alpha = 0.014, kp_grav = 1.5;
 
     // Logging setup
     std::ofstream csv_file("src/openarm_bilateral/data/velocity_torque.csv");
@@ -224,7 +226,8 @@ while (running) {
             }
         }
         
-        std::cout<< "joint_positions[8]"  <<joint_positions[NJOINTS -1] << std::endl;
+        //std::cout<< "joint_positions[8]"  <<joint_positions[NJOINTS -1] << std::endl;
+        // std::cout<< "joint_velocities[8]"  <<joint_velocities[N] << std::endl;
 
         if (round_trip_counter >= round_trip) {
             std::cout << "finish constant speed test!!!" << std::endl;
@@ -279,11 +282,11 @@ while (running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
+    openarm.disable();
     std::cout << "finished" << std::endl;
 
     std::cout << "you can use srcipt/torque_velocity.py !!!!!" << std::endl;
     csv_file.close();
-    openarm.disable();
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
     return 0;
 }

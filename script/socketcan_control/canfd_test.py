@@ -22,12 +22,12 @@ import time
 
 CAN_DEVICE_NAME = "can0"
 NUMJOINT = 1
-Kp = [2]
-Kd = [0.1]
+Kp = [0]
+Kd = [0]
 # Pos = [np.pi*2]
 Pos = [0]
 Vel = [0]
-Tau = [0]
+Tau = [1.0]
 
 zeros = np.zeros(NUMJOINT)
 
@@ -39,8 +39,8 @@ if __name__ == "__main__":
             [
                 DM_Motor_Type.DM4340
             ],
-            [0x02],
-            [0x12],
+            [0x08],
+            [0x18],
             use_canfd = True
         )
 

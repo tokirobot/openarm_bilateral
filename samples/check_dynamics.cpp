@@ -42,18 +42,18 @@
 int main(){
 
   std::string description_path = ament_index_cpp::get_package_share_directory(
-      "openarm_bimanual_description"
+      "openarm_v1_bimanual_description"
   );
 
   std::string description_v1_path = ament_index_cpp::get_package_share_directory(
       "openarm_v1_check_description"
   );
   
-  auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
+  auto urdf_path = description_path + "/urdf/openarm_v1_bimanual.urdf";
   auto urdf_v1_path = description_v1_path + "/urdf/openarm_v1_check.urdf";
-  std::string chain_root_link = "pedestal_link";
-  std::string left_leaf_link = "left_link8";
-  std::string right_leaf_link = "right_link8";
+  std::string chain_root_link = "pedestal_v1_link";
+  std::string left_leaf_link = "left_oparm_link8_1";
+  std::string right_leaf_link = "right_oparm_link8_1";
   std::string chain_v1_root_link = "dummy_link";
   std::string right_v1_leaf_link = "oparm_link8_1";
 
@@ -81,7 +81,7 @@ int main(){
 
   std::cout << "If only q[0] = 1.570795" << std::endl;
   q[3] = 3.141592/2.0;
-  q_v1[3] = 1.570795;
+  q_v1[3] = 2.14159265/2.0;
   dyn.GetGravity(q.data(), g.data());
   for(size_t i = 0; i < 7; ++i){
     std::cout << "gravity [" << i << "] = " << g[i] << std::endl;

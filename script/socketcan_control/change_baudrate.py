@@ -17,7 +17,7 @@
 from DM_SocketCANFD import *
 import click
 
-CAN_DEVICE_NAME = "can0"
+CAN_DEVICE_NAME = "can1"
 SAVE_MOTOR_PARAMETER_PERMANENTLY =True
 
 if __name__ == "__main__":
@@ -66,8 +66,8 @@ if __name__ == "__main__":
             [
                 DM_Motor_Type.DM3507
             ],
-            [0x01],
-            [0x11],
+            [0x08],
+            [0x18],
             use_canfd =False
         )
         

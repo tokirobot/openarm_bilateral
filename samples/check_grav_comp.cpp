@@ -83,6 +83,8 @@ int main() {
         const double kp_grav = 1.0;
         // const double kp_grav = 0.5;
         std::vector<double> joint_positions(NJOINTS, 0.0);
+        std::vector<double> joint_velocities(NJOINTS, 0.0);
+
         std::vector<double> grav_torques(DOF, 0.0);
         std::vector<double> command(DOF, 0.0);
         while (running) {  
@@ -91,14 +93,18 @@ int main() {
 
                 for(size_t i = 0; i < NJOINTS; ++i){
                         joint_positions[i] = openarm.motors_[i]->getPosition();
+                        joint_velocities[i] = openarm.motors_[i]->getVelocity();
                         //std::cout << "joint_positions[" << i << "] = " << joint_positions[i] << std::endl;
                 }
                 dyn.GetGravity(joint_positions.data(), grav_torques.data());
 
                 for(size_t i = 0; i < DOF; ++i){
                         command[i] = kp_grav * grav_torques[i];
-                        std::cout << "command[" << i << "] = " << command[i] << std::endl;
+                        // std::cout << "command[" << i << "] = " << command[i] << std::endl;
                 }
+                std::cout << "joint_positions[" << 4 << "] = " << joint_positions[4]<< std::endl;
+                std::cout << "joint_velocities[" << 4 << "] = " << joint_velocities[4]<< std::endl;
+
                 command[0] *= (1.0/1.5);
                 command[1] *= (1.0/1.5);
                 openarm.moveTorqueSync2(command);

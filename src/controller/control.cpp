@@ -57,13 +57,21 @@ bool Control::Setup(void)
 
 
         printf("Control created for arm_type: %s\n", arm_type_.c_str());
+        //std::string description_path = ament_index_cpp::get_package_share_directory(
+                        //"openarm_bimanual_description"
+                        //);
+        //auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
+        //std::string chain_root_link = "pedestal_link";
+        //std::string left_leaf_link = "left_link8";
+        //std::string right_leaf_link = "right_link8";
+
         std::string description_path = ament_index_cpp::get_package_share_directory(
-                        "openarm_bimanual_description"
+                        "openarm_v1_check_description"
                         );
-        auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
-        std::string chain_root_link = "pedestal_link";
-        std::string left_leaf_link = "left_link8";
-        std::string right_leaf_link = "right_link8";
+        auto urdf_path = description_path + "/urdf/openarm_v1_check.urdf";
+        std::string chain_root_link = "dummy_link";
+        std::string left_leaf_link = "oparm_link8_1";
+        std::string right_leaf_link = "oparm_link8_1";
 
         if(arm_type_ == "left_arm"){
                 dynamics_l_ = new Dynamics(urdf_path, chain_root_link, left_leaf_link);
@@ -133,23 +141,31 @@ bool Control::DoControl()
 
         auto start_time = std::chrono::steady_clock::now();
 
-        std::vector<double> kp_temp = {250, 220.0, 250.0, 250.0, 25.0, 28.0, 31.0, 0.0};
-        std::vector<double> kd_temp = {3.5, 3.0, 4.0, 4.0, 0.3, 0.17, 0.3, 0.0};  
+        std::vector<double> kp_temp = {270, 270.0, 250.0, 250.0, 24.0, 29.0, 29.0, 1.0};
+        std::vector<double> kd_temp = {3.5, 3.0, 4.0, 4.0, 0.2, 0.17, 0.2, 0.0};  
+
+        //std::vector<double> kp_temp = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0};
+        //std::vector<double> kd_temp = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};  
 
         if(role_ == ROLE_FOLLOWER){
                 kp_temp[NJOINTS - 1] *= (1.0f/GRIP_SCALE);
                 kd_temp[NJOINTS - 1] *= (1.0f/GRIP_SCALE);
         }
 
-
         std::vector<double> positions = arm_->getPositions();
         std::vector<double> velocities = arm_->getVelocities();
-//std::cout << "positions size: " << positions.size() << std::endl;
-//std::cout << "positions[NJOINTS-1]: " << positions[NJOINTS - 1] << std::endl;
+        if(role_ == ROLE_FOLLOWER){
+        // std::cout << "follower positions[4]: " << positions[4] << std::endl;
+        }
+        else if(role_ == ROLE_LEADER){
+                // std::cout << "leader positions[4]" << positions[4] << std::endl;
+                // positions[4] *= 1.0;
+        }
 
         for (size_t i = 0; i < positions.size(); ++i) {
                 motor_position[i] = positions[i];
         }
+        
         ComputeJointPosition(motor_position, response_->position.data());
 
         
@@ -188,7 +204,8 @@ bool Control::DoControl()
 
 
         // Compute inertia based on oblique coordinate system
-        float kg = 1.6;
+        //float kg = 1.0;
+        std::vector<double> kg = {0.66, 0.66, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
         if (role_ == ROLE_LEADER) {
                 dynamics_l_->GetGravity(response_->position.data(), gravity);
                 // dynamics_l_->GetColiori(response_->position.data(), response_->velocity.data(), colioli);
@@ -210,9 +227,9 @@ bool Control::DoControl()
         }
 
         for(int i = 0; i < NJOINTS; ++i){
-                inertia_diag_l[i] *= kg;
+                inertia_diag_l[i] *= kg[i];
 
-                inertia_diag_f[i] *= kg;
+                inertia_diag_f[i] *= kg[i];
         }
 
         // differentiator_->Differentiate(motor_position, motor_velocity);
@@ -280,7 +297,7 @@ bool Control::DoControl()
                 double tau_v_oblique = kd_temp[i] * (reference_->velocity[i] - response_->velocity[i]);
                 double tau_f_oblique = - oblique_coordinates_force * Kf_[i] * (reference_->effort[i] + response_->effort[i]);
 
-                joint_torque[i] = tau_p_oblique + tau_v_oblique + gravity[i] * kg + tau_f_oblique + disturbance_[i];
+                joint_torque[i] = tau_p_oblique + tau_v_oblique + gravity[i] * kg[i] + tau_f_oblique + disturbance_[i];
                 input_torque[i] = joint_torque[i];
                 
                 if (i == 7){
@@ -289,7 +306,7 @@ bool Control::DoControl()
 
                 // DOB 1 Mass jointspace
                 double a = gn_[i] * Ts_;
-                disturbance_lowpassin_[i] = (joint_torque[i] - gravity[i]*kg) + gn_[i] * Jn_[i] * response_->velocity[i];
+                disturbance_lowpassin_[i] = (joint_torque[i] - gravity[i]*kg[i]) + gn_[i] * Jn_[i] * response_->velocity[i];
                 disturbance_lowpassout_[i] += a * (disturbance_lowpassin_[i] - disturbance_lowpassout_[i]);
                 disturbance_[i] = disturbance_lowpassout_[i] - response_->velocity[i] * Jn_[i] * gn_[i];
 
@@ -302,7 +319,7 @@ bool Control::DoControl()
 
                 // RFOB 1 Mass jointspace
                 double a_ = GN_SCALE * gn_[i] * Ts_;
-                reactionforce_lowpassin_[i] = (joint_torque[i] - gravity[i]*kg) + GN_SCALE*gn_[i] * Jn_[i] * response_->velocity[i] - friction[i] -  colioli[i];
+                reactionforce_lowpassin_[i] = (joint_torque[i] - gravity[i]*kg[i]) + GN_SCALE*gn_[i] * Jn_[i] * response_->velocity[i] - friction[i] -  colioli[i];
                 reactionforce_lowpassout_[i] += a_ * (reactionforce_lowpassin_[i] - reactionforce_lowpassout_[i]);
                 response_->effort[i] = reactionforce_lowpassout_[i] - response_->velocity[i] * Jn_[i] *GN_SCALE * gn_[i];
 

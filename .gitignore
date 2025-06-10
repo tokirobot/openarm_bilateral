@@ -33,3 +33,6 @@ Makefile
 a.out
 *.o
 CMakeConfigureLog.yaml
+
+# Ignore venv
+script/venv/
