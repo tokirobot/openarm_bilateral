@@ -35,7 +35,7 @@
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
 
-#define openarm_DEVICENAME0 "can0"
+#define openarm_DEVICENAME0 "can1"
 #define TICK 0.02
 #define DOF 7
 #define NJOINTS 8
@@ -49,12 +49,15 @@ void signalHandler(int) {
 int main() {
         signal(SIGINT, signalHandler);
 
+        //std::string description_path = ament_index_cpp::get_package_share_directory(
+                        //"openarm_v1_check_description"
+                        //);
         std::string description_path = ament_index_cpp::get_package_share_directory(
-                        "openarm_v1_check_description"
+                        "openarm_v1_bimanual_description"
                         );
-        auto urdf_path = description_path + "/urdf/openarm_v1_check.urdf";
-        std::string chain_root_link = "dummy_link";
-        std::string left_leaf_link = "oparm_link8_1";
+        auto urdf_path = description_path + "/urdf/openarm_v1_bimanual.urdf";
+        std::string chain_root_link = "pedestal_v1_link";
+        std::string left_leaf_link = "right_oparm_link8_1";
         auto dyn = Dynamics(urdf_path, chain_root_link, left_leaf_link);
         dyn.Init();
         std::cout << description_path << std::endl;

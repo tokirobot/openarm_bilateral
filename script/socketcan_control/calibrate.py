@@ -21,7 +21,7 @@ from urdf_parser_py.urdf import URDF
 from ament_index_python.packages import get_package_share_directory
 import os
 
-openarm_DEVICENAME = "can0"
+openarm_DEVICENAME = "can1"
 POSE0 = [0, 0, 0, 0, 0, 0, 0, 0]
 K0 = [0, 0, 0, 0, 0, 0, 0, 0]
 
