@@ -36,7 +36,7 @@ constexpr double PI = 3.14159265358979323846;
 #define CAN2 "can2"
 #define CAN3 "can3"
 
-#define GRIP_SCALE 2.0
+#define GRIP_SCALE 1.0
 #define LOGGING true
 #define AUTOBALANCER_ON false
 #define TANHFRIC true
@@ -49,7 +49,7 @@ constexpr double PI = 3.14159265358979323846;
  */
 #define FREQUENCY 1500.0
 #define ALPHA 1.0
-#define BETA  0.8
+#define BETA  0.5
 #define CUTOFF_FREQUENCY 90.0
 
 #define ELBOWLIMIT PI/5.0
@@ -65,9 +65,9 @@ static const double INITIAL_POSITION[NMOTORS] = {
 
 // safety limit position
 static const double position_limit_max_L[] = { (2.0/3.0)*PI, PI, PI/2.0, PI, PI/2.0, PI/2.0, PI/3.0, PI };
-static const double position_limit_min_L[] = { -(2.0/3.0)*PI, -PI/20.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -0.2 };
+static const double position_limit_min_L[] = { -(2.0/3.0)*PI, -PI/17.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
 static const double position_limit_max_F[] = { (2.0/3.0)*PI, PI, PI/2.0, PI, PI/2.0, PI/2.0, PI/3.0, PI };
-static const double position_limit_min_F[] = { -(2.0/3.0)*PI, -PI/20.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -0.2 };
+static const double position_limit_min_F[] = { -(2.0/3.0)*PI, -PI/17.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
 // sefaty limit velocity              
 static const double velocity_limit_L[] = {8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0}; 
 static const double velocity_limit_F[] = {8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0}; 

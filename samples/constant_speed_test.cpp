@@ -45,6 +45,7 @@
 #include <numeric>
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
+#include "../src/controller/diff.hpp"
 
 #define openarm_DEVICENAME0 "can0"
 #define TICK 0.0009
@@ -75,9 +76,9 @@ int main(int argc, char **argv) {
     std::signal(SIGINT, signalHandler);  // Setup signal handling for Ctrl+C
 
     // Load URDF and initialize dynamics
-    std::string description_path = ament_index_cpp::get_package_share_directory("openarm_bimanual_description");
-    auto urdf_path = description_path + "/urdf/openarm_bimanual.urdf";
-    auto dyn = Dynamics(urdf_path, "pedestal_link", "right_link8");
+    std::string description_path = ament_index_cpp::get_package_share_directory("openarm_v1_bimanual_description");
+    auto urdf_path = description_path + "/urdf/openarm_v1_bimanual.urdf";
+    auto dyn = Dynamics(urdf_path, "pedestal_v1_link", "right_oparm_link8_1");
     dyn.Init();
 
     // Initialize motors

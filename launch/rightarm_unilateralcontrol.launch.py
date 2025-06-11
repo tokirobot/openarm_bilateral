@@ -25,16 +25,21 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+import os
+
 def generate_launch_description():
+    pkg_share = get_package_share_directory('openarm_bilateral')
+    leader_yaml = os.path.join(pkg_share, 'config', 'leader.yaml')
+    follower_yaml = os.path.join(pkg_share, 'config', 'follower.yaml')
+
     return LaunchDescription([
         Node(
             package='openarm_bilateral',
             executable='bilateral_openarm_main',
             output='screen',
             arguments=['right_arm', 'unilate'],
-            parameters=[]
+            parameters=[leader_yaml, follower_yaml]
         )
     ])
-
-
 

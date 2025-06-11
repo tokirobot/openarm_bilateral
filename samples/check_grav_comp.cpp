@@ -105,11 +105,11 @@ int main() {
                         command[i] = kp_grav * grav_torques[i];
                         // std::cout << "command[" << i << "] = " << command[i] << std::endl;
                 }
-                std::cout << "joint_positions[" << 4 << "] = " << joint_positions[4]<< std::endl;
-                std::cout << "joint_velocities[" << 4 << "] = " << joint_velocities[4]<< std::endl;
+                // std::cout << "joint_positions[" << 4 << "] = " << joint_positions[4]<< std::endl;
+                // std::cout << "joint_velocities[" << 4 << "] = " << joint_velocities[4]<< std::endl;
 
-                command[0] *= (1.0/1.5);
-                command[1] *= (1.0/1.5);
+                command[0] *= (1.0/1.6);
+                command[1] *= (1.0/1.6);
                 openarm.moveTorqueSync2(command);
                 auto loop_end_time = std::chrono::steady_clock::now();
                 std::chrono::duration<double> t_elapsed = loop_end_time - loop_start_time;

@@ -22,12 +22,12 @@ import time
 
 CAN_DEVICE_NAME = "can0"
 NUMJOINT = 1
-Kp = [0]
-Kd = [0]
+Kp = [0.0]
+Kd = [0.0]
 # Pos = [np.pi*2]
-Pos = [0]
-Vel = [0]
-Tau = [1.0]
+Pos = [0.0]
+Vel = [0.0]
+Tau = [2.0]
 
 zeros = np.zeros(NUMJOINT)
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
             ],
             [0x08],
             [0x18],
-            use_canfd = True
+            use_canfd =True
         )
 
         openarm.enable()
@@ -51,9 +51,9 @@ if __name__ == "__main__":
                 start = time.perf_counter()
 
                 # openarm.set_goal_positions_sync(Pose, Kp, Kd)
-                # openarm.setMIT(Kp, Kd, Pos, Vel, Tau)
+                # openarm.setMIT(Pos, Vel, Kp, Kd, Tau)
                 # openarm.set_goal_posvel(Pos)
-                openarm.setMITSync(Kp, Kd, Pos, Vel, Tau)
+                openarm.setMITSync(Pos, Vel, Kp, Kd, Tau)
                 # openarm.setVel(Vel)
                 # openarm.setVelSync(Vel)
                 # openarm.setPosVel(Pos,Vel)

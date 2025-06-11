@@ -93,6 +93,14 @@ y_sigmoid = sigmoid_friction_model(x_fit, *params_sigmoid)
 plt.plot(x_fit, y_sigmoid, 'magenta', linestyle="--", label="Sigmoid Friction")
 
 
+# Print Fitted Parameters
+print(f"[Linear +]   y = {a_plus:.3f} x + {b_plus:.3f}")
+print(f"[Linear -]   y = {a_minus:.3f} x + {b_minus:.3f}")
+#print(f"[Gaussian]   τ(v) = {params_smooth[1]:.3f} * sign(v) + ({params_smooth[0]:.3f} - {params_smooth[1]:.3f}) * exp(-(v/{params_smooth[2]:.3f})²) * sign(v) + {params_smooth[3]:.3f} * v")
+print(f"[atan]       τ(v) = {params_atan[0]:.3f} * atan({params_atan[1]:.3f} * v) + {params_atan[2]:.3f} * v + {params_atan[3]:.3f}")
+print(f"[tanh]       τ(v) = {params_tanh[0]:.3f} * tanh({params_tanh[1]:.3f} * v) + {params_tanh[2]:.3f} * v + {params_tanh[3]:.3f}")
+print(f"[sigmoid]    τ(v) = {params_sigmoid[0]:.3f} * (2/(1+exp(-{params_sigmoid[1]:.3f} * v)) - 1) + {params_sigmoid[2]:.3f} * v + {params_sigmoid[3]:.3f}")
+
 # Plot decorations
 plt.xlabel("Actual Velocity [rad/s]")
 plt.ylabel("Command Torque [Nm]")
@@ -102,10 +110,3 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-# Print Fitted Parameters
-print(f"[Linear +]   y = {a_plus:.3f} x + {b_plus:.3f}")
-print(f"[Linear -]   y = {a_minus:.3f} x + {b_minus:.3f}")
-#print(f"[Gaussian]   τ(v) = {params_smooth[1]:.3f} * sign(v) + ({params_smooth[0]:.3f} - {params_smooth[1]:.3f}) * exp(-(v/{params_smooth[2]:.3f})²) * sign(v) + {params_smooth[3]:.3f} * v")
-print(f"[atan]       τ(v) = {params_atan[0]:.3f} * atan({params_atan[1]:.3f} * v) + {params_atan[2]:.3f} * v + {params_atan[3]:.3f}")
-print(f"[tanh]       τ(v) = {params_tanh[0]:.3f} * tanh({params_tanh[1]:.3f} * v) + {params_tanh[2]:.3f} * v + {params_tanh[3]:.3f}")
-print(f"[sigmoid]    τ(v) = {params_sigmoid[0]:.3f} * (2/(1+exp(-{params_sigmoid[1]:.3f} * v)) - 1) + {params_sigmoid[2]:.3f} * v + {params_sigmoid[3]:.3f}")
