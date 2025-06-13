@@ -20,7 +20,7 @@ import numpy as np
 from numpy import pi
 import time
 
-CAN_DEVICE_NAME = "can0"
+CAN_DEVICE_NAME = "can1"
 
 Kp = [0, 0, 0, 0, 0, 0, 0, 0]
 Kd = [0, 0, 0, 0, 0, 0, 0, 0]

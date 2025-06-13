@@ -17,7 +17,7 @@
 from DM_SocketCANFD import *
 import click
 
-CAN_DEVICE_NAME = "can0"
+CAN_DEVICE_NAME = "can3"
 SAVE_MOTOR_PARAMETER_PERMANENTLY =True
 
 if __name__ == "__main__":
@@ -54,20 +54,22 @@ if __name__ == "__main__":
                 # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
                 # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
                 # DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
-                # DM_Motor_Type.DM4310, DM_Motor_Type.DM3507
+                # DM_Motor_Type.DM4310
             # ],
-            # [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
-            # [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
-            # use_canfd =True
+            # [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07],
+            # [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17],
+            # use_canfd =False
         # )
+
+        print(f"current can port {CAN_DEVICE_NAME}")
 
         openarm = DamiaoPort(
             CAN_DEVICE_NAME,
             [
                 DM_Motor_Type.DM3507
             ],
-            [0x07],
-            [0x17],
+            [0x01],
+            [0x11],
             use_canfd =False
         )
         
@@ -75,12 +77,12 @@ if __name__ == "__main__":
         addr = DM_variable.can_br
         bval = baudrates.index(baudrate)
         for i, motor in enumerate(openarm.motors, start=1):
-            openarm.control.read_motor_param(motor, addr)
+            # openarm.control.read_motor_param(motor, addr)
             openarm.control.change_motor_param(motor, addr, bval)
             if SAVE_MOTOR_PARAMETER_PERMANENTLY:
                 print(f"saving motor parameter permanentaly for motor {i}")
                 openarm.control.save_motor_param(motor)
-            openarm.control.read_motor_param(motor, addr)
+            # openarm.control.read_motor_param(motor, addr)
         openarm.disable()
         print("done")
     main()

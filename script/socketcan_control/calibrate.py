@@ -76,25 +76,25 @@ if __name__ == "__main__":
             return
 
         print(f"using {openarm_DEVICENAME}")
-        openarm = DamiaoPort(openarm_DEVICENAME,
-                              [DM_Motor_Type.DM4340],
-                              [ 0x08],
-                              [ 0x18],
-                              use_canfd = True
-                              )
+        # openarm = DamiaoPort(openarm_DEVICENAME,
+        #                       [DM_Motor_Type.DM4340],
+        #                       [ 0x08],
+        #                       [ 0x18],
+        #                       use_canfd = True
+        #                       )
        
-        # openarm = DamiaoPort(
-            # CAN_DEVICE_NAME,
-            # [
-                # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
-                # DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
-                # DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
-                # DM_Motor_Type.DM4310, DM_Motor_Type.DM3507
-            # ],
-            # [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
-            # [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
-            # use_canfd =True
-        # )
+        openarm = DamiaoPort(
+            openarm_DEVICENAME,
+            [
+                DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
+                DM_Motor_Type.DM4340, DM_Motor_Type.DM4340,
+                DM_Motor_Type.DM4310, DM_Motor_Type.DM4310,
+                DM_Motor_Type.DM4310, DM_Motor_Type.DM3507
+            ],
+            [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
+            [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18],
+            use_canfd =True
+        )
         
         #check openarm init_success flag is true or not
         if openarm.init_success == True:

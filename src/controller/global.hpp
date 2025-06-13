@@ -36,7 +36,7 @@ constexpr double PI = 3.14159265358979323846;
 #define CAN2 "can2"
 #define CAN3 "can3"
 
-#define GRIP_SCALE 1.0
+#define GRIP_SCALE 1.7
 #define LOGGING true
 #define AUTOBALANCER_ON false
 #define TANHFRIC true

@@ -35,7 +35,7 @@
 #include "../src/controller/dynamics.hpp"
 #include "../src/dmmotor/damiao_port.hpp"
 
-#define openarm_DEVICENAME0 "can1"
+#define openarm_DEVICENAME0 "can3"
 #define TICK 0.02
 #define DOF 7
 #define NJOINTS 8
@@ -57,13 +57,15 @@ int main() {
                         );
         auto urdf_path = description_path + "/urdf/openarm_v1_bimanual.urdf";
         std::string chain_root_link = "pedestal_v1_link";
-        std::string left_leaf_link = "right_oparm_link8_1";
+        std::string left_leaf_link = "left_oparm_link8_1";
+        std::string right_leaf_link = "right_oparm_link8_1";
+
         auto dyn = Dynamics(urdf_path, chain_root_link, left_leaf_link);
         dyn.Init();
         std::cout << description_path << std::endl;
         DamiaoPort openarm(
                         openarm_DEVICENAME0, 
-                        {DM_Motor_Type::DM4340, DM_Motor_Type::DM4340, 
+                        {DM_Motor_Type::DM8009, DM_Motor_Type::DM8009, 
                          DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
                          DM_Motor_Type::DM4310, DM_Motor_Type::DM4310,
                          DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
@@ -105,11 +107,13 @@ int main() {
                         command[i] = kp_grav * grav_torques[i];
                         // std::cout << "command[" << i << "] = " << command[i] << std::endl;
                 }
+
                 // std::cout << "joint_positions[" << 4 << "] = " << joint_positions[4]<< std::endl;
                 // std::cout << "joint_velocities[" << 4 << "] = " << joint_velocities[4]<< std::endl;
 
-                command[0] *= (1.0/1.6);
-                command[1] *= (1.0/1.6);
+                command[0] *= (1.0/0.85);
+                command[1] *= (1.0/0.85);
+
                 openarm.moveTorqueSync2(command);
                 auto loop_end_time = std::chrono::steady_clock::now();
                 std::chrono::duration<double> t_elapsed = loop_end_time - loop_start_time;

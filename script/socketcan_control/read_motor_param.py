@@ -18,7 +18,7 @@ from DM_SocketCANFD import *
 from enum import IntEnum
 import click
 import sys
-CAN_DEVICE_NAME = "can0"
+CAN_DEVICE_NAME = "can3"
 NUMJOINT = 1
 zeros = np.zeros(NUMJOINT)
 

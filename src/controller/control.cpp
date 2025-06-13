@@ -152,14 +152,7 @@ bool Control::DoControl()
 
         std::vector<double> positions = arm_->getPositions();
         std::vector<double> velocities = arm_->getVelocities();
-        
-        if(role_ == ROLE_FOLLOWER){
-        // std::cout << "follower positions[4]: " << positions[4] << std::endl;
-        }
-        else if(role_ == ROLE_LEADER){
-                // std::cout << "leader positions[4]" << positions[4] << std::endl;
-                // positions[4] *= 1.0;
-        }
+
 
         for (size_t i = 0; i < positions.size(); ++i) {
                 motor_position[i] = positions[i];
@@ -204,7 +197,7 @@ bool Control::DoControl()
 
         // Compute inertia based on oblique coordinate system
         //float kg = 1.0;
-        std::vector<double> kg = {0.625, 0.625, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
+        std::vector<double> kg = {1.25, 1.25, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
         if (role_ == ROLE_LEADER) {
                 dynamics_l_->GetGravity(response_->position.data(), gravity);
                 // dynamics_l_->GetColiori(response_->position.data(), response_->velocity.data(), colioli);
@@ -410,10 +403,9 @@ bool Control::DoControl()
         std::vector<double> damiao_torque;
 
         for (size_t i = 0; i <NJOINTS; ++i) {
-                //if(i == NJOINTS - 1)
-                        //motor_torque[i] *= -1.0;
                 damiao_torque.push_back(motor_torque[i]);
         }
+        
         //This is because EE is current control 
         //kp_temp[NJOINTS-1] = 0.0;
         //kd_temp[NJOINTS-1] = 0.0;
@@ -452,7 +444,7 @@ bool Control::DoControl()
 
                 ComputeJointPosition(motor_position, response_->position.data());
                 ComputeJointVelocity(motor_velocity, response_->velocity.data());
-                std::vector<double> kg = {0.625, 0.625, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
+                std::vector<double> kg = {1.17, 1.17, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
 
                 if(role_ == ROLE_LEADER){
 
