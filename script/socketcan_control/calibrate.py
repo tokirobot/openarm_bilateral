@@ -22,7 +22,7 @@ from ament_index_python.packages import get_package_share_directory
 import os
 import sys
 
-openarm_DEVICENAME = "can0"
+openarm_DEVICENAME = "can3"
 POSE0 = [0, 0, 0, 0, 0, 0, 0, 0]
 K0 = [0, 0, 0, 0, 0, 0, 0, 0]
 

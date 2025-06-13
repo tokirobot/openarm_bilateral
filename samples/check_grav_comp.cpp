@@ -68,7 +68,7 @@ int main() {
                         {DM_Motor_Type::DM8009, DM_Motor_Type::DM8009, 
                          DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
                          DM_Motor_Type::DM4310, DM_Motor_Type::DM4310,
-                         DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
+                         DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         Control_Type::MIT,

@@ -36,7 +36,7 @@ constexpr double PI = 3.14159265358979323846;
 #define CAN2 "can2"
 #define CAN3 "can3"
 
-#define GRIP_SCALE 1.7
+#define GRIP_SCALE 1.0
 #define LOGGING true
 #define AUTOBALANCER_ON false
 #define TANHFRIC true
@@ -56,7 +56,7 @@ constexpr double PI = 3.14159265358979323846;
 #define GN_SCALE 1.0
 
 static const double SATURATION_DOB[NJOINTS] = {
-11.5, 11.5, 10.5, 11.5, 7.0, 7.0, 6.0, 2.5 
+15.5, 14.5, 11.5, 11.5, 7.0, 7.0, 6.0, 4.5 
 };
 
 static const double INITIAL_POSITION[NMOTORS] = {
@@ -65,9 +65,10 @@ static const double INITIAL_POSITION[NMOTORS] = {
 
 // safety limit position
 static const double position_limit_max_L[] = { (2.0/3.0)*PI, PI, PI/2.0, PI, PI/2.0, PI/2.0, PI/3.0, PI };
-static const double position_limit_min_L[] = { -(2.0/3.0)*PI, -PI/17.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
+static const double position_limit_min_L[] = { -(2.0/3.0)*PI, -PI/2.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
 static const double position_limit_max_F[] = { (2.0/3.0)*PI, PI, PI/2.0, PI, PI/2.0, PI/2.0, PI/3.0, PI };
-static const double position_limit_min_F[] = { -(2.0/3.0)*PI, -PI/17.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
+static const double position_limit_min_F[] = { -(2.0/3.0)*PI, -PI/2.0, -PI/2.0, ELBOWLIMIT, -PI/2.0, -PI/2.0, -PI/3.0, -PI };
+
 // sefaty limit velocity              
 static const double velocity_limit_L[] = {8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0}; 
 static const double velocity_limit_F[] = {8.0,8.0,8.0,8.0,8.0,8.0,8.0,8.0}; 

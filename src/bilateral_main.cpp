@@ -78,12 +78,11 @@ class LeaderNode: public rclcpp::Node
 
 
                 double Ts = 1.0 / FREQUENCY;
-                int msec = (int) (Ts * 1000);
 
                 timer_ = this->create_wall_timer(
-                                std::chrono::milliseconds(msec),
+                                std::chrono::duration<double>(1.0 / FREQUENCY),
                                 std::bind(&LeaderNode::timer_callback, this));
-
+                                
                 RCLCPP_INFO(this->get_logger(), "LeaderNode initialized");
         }
 
@@ -150,12 +149,11 @@ class FollowerNode: public rclcpp::Node
                 control_f_->Configure(Dn.data(), Jn.data(), gn.data(), Kp.data(), Kd.data(), Kf.data(), Fc.data(), k.data(), Fv.data(), Fo.data());
 
                 double Ts = 1.0 / FREQUENCY;
-                int msec = (int) (Ts * 1000);
 
                 timer_ = this->create_wall_timer(
-                                std::chrono::milliseconds(msec),
+                                std::chrono::duration<double>(1.0 / FREQUENCY),
                                 std::bind(&FollowerNode::timer_callback, this));
-
+                                
                 RCLCPP_INFO(this->get_logger(), "FollowerNode initialized");
         }
 
@@ -195,7 +193,7 @@ class AdminNode: public rclcpp::Node
         rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_l_;
         rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr pub_f_;
 
-        const double Ts = 1.0/FREQUENCY;
+        // const double Ts = 1.0/FREQUENCY;
 
         public:
         AdminNode(Control *control_l, Control *control_f, std::string arm_type, std::string control_type) : Node("AdminNode"), control_l_(control_l), control_f_(control_f), arm_type_(arm_type), control_type_(control_type)
@@ -203,10 +201,13 @@ class AdminNode: public rclcpp::Node
                 setup_all_publishers();
 
                 //double Ts = 1.0 / FREQUENCY;
-                int msec = (int) (Ts * 1000);
+                // int msec = (int) (Ts * 1000);
 
+
+                double Ts = 1.0 / FREQUENCY;
+                
                 timer_ = this->create_wall_timer(
-                                std::chrono::milliseconds(msec),
+                                std::chrono::duration<double>(1.0 / FREQUENCY),
                                 std::bind(&AdminNode::timer_callback, this));
 
                 RCLCPP_INFO(this->get_logger(), "AdminNode initialized");
@@ -339,7 +340,7 @@ int main(int argc, char **argv)
 
         DamiaoPort* arm_l = new DamiaoPort(can_dev_l, 
                         {DM_Motor_Type::DM8009, DM_Motor_Type::DM8009, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
-                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
+                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         Control_Type::MIT,
@@ -348,7 +349,7 @@ int main(int argc, char **argv)
 
         DamiaoPort* arm_f = new DamiaoPort(can_dev_f, 
                         {DM_Motor_Type::DM8009, DM_Motor_Type::DM8009, DM_Motor_Type::DM4340, DM_Motor_Type::DM4340,
-                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM3507},
+                        DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310, DM_Motor_Type::DM4310},
                         {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
                         {0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18},
                         Control_Type::MIT,

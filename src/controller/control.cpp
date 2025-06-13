@@ -142,8 +142,8 @@ bool Control::DoControl()
 
         auto start_time = std::chrono::steady_clock::now();
 
-        std::vector<double> kp_temp = {290.523, 290.0, 250.0, 250.0, 24.0, 29.0, 29.0, 1.0};
-        std::vector<double> kd_temp = {3.9, 3.0, 4.0, 4.0, 0.2, 0.17, 0.2, 0.05};  
+        std::vector<double> kp_temp = {290, 290.0, 250.0, 250.0, 24.0, 29.0, 29.0, 9.0};
+        std::vector<double> kd_temp = {3.9, 3.0, 4.0, 4.0, 0.2, 0.17, 0.2, 0.2};  
 
         if(role_ == ROLE_FOLLOWER){
                 kp_temp[NJOINTS - 1] *= (1.0f/GRIP_SCALE);
@@ -160,30 +160,35 @@ bool Control::DoControl()
         
         ComputeJointPosition(motor_position, response_->position.data());
 
-        
         //low-pass filtering only gripper 
-        double temp_a = 0.05;
-        if(role_ == ROLE_FOLLOWER){
-                temp_a = 0.02;
-        }
-        else {
-                temp_a = 0.02;
-        }
+        // double temp_a = 0.05;
+        // if(role_ == ROLE_FOLLOWER){
+        //         temp_a = 0.02;
+        // }
+        // else {
+        //         temp_a = 0.02;
+        // }
 
-        static double filtered_velocity_7 = 0.0;
-        filtered_velocity_7 = temp_a * velocities[7] + (1.0 - temp_a) * filtered_velocity_7;         
-        // std::cout << "filtered_velocity_7 : " << filtered_velocity_7 << "  velocity raw : "<< velocities[7] << std::endl;
-        velocities[7] = filtered_velocity_7;
+        // static double filtered_velocity_7 = 0.0;
+        // filtered_velocity_7 = temp_a * velocities[7] + (1.0 - temp_a) * filtered_velocity_7;         
+        // // std::cout << "filtered_velocity_7 : " << filtered_velocity_7 << "  velocity raw : "<< velocities[7] << std::endl;
+        // velocities[7] = filtered_velocity_7;
 
 
         if(role_ == ROLE_LEADER){
-                reference_->position[NJOINTS - 1] *= 1.0f/(GRIP_SCALE);
-                reference_->velocity[NJOINTS - 1] *= 1.0f/(GRIP_SCALE);
-        }
-        else if(role_ == ROLE_FOLLOWER){
+                reference_->position[NJOINTS - 1] *= 1.0f / (GRIP_SCALE);
+                reference_->velocity[NJOINTS - 1] *= 1.0f / (GRIP_SCALE);
+            
+                // std::cout << "[LEADER] Scaled position: " << reference_->position[NJOINTS - 1] << std::endl;
+                // std::cout << "[LEADER] Scaled velocity: " << reference_->velocity[NJOINTS - 1] << std::endl;
+            }
+            else if(role_ == ROLE_FOLLOWER){
                 reference_->position[NJOINTS - 1] *= (GRIP_SCALE);
                 reference_->velocity[NJOINTS - 1] *= (GRIP_SCALE);
-        }
+            
+                // std::cout << "[FOLLOWER] Scaled position: " << reference_->position[NJOINTS - 1] << std::endl;
+                // std::cout << "[FOLLOWER] Scaled velocity: " << reference_->velocity[NJOINTS - 1] << std::endl;
+            }
 
         //        if(role_ == ROLE_LEADER){
         //                std::cout << "positions: [";
@@ -196,8 +201,8 @@ bool Control::DoControl()
 
 
         // Compute inertia based on oblique coordinate system
-        //float kg = 1.0;
-        std::vector<double> kg = {1.25, 1.25, 1.0, 1.0, 1.0, 1.0, 1.0 ,1.0};  
+        std::vector<double> kg = {1.25, 1.25, 1.1, 1.1, 1.1, 1.1, 1.1 ,1.1};  
+        
         if (role_ == ROLE_LEADER) {
                 dynamics_l_->GetGravity(response_->position.data(), gravity);
                 // dynamics_l_->GetColiori(response_->position.data(), response_->velocity.data(), colioli);
@@ -216,7 +221,11 @@ bool Control::DoControl()
                 dynamics_f_->GetMassMatrixDiagonal(response_->position.data(), inertia_diag_f);
                 inertia_diag_l[NJOINTS - 1] = 0.001;
                 inertia_diag_f[NJOINTS - 1] = 0.001;
+
+                // ee scale
+                kg[NJOINTS - 2] = 2.0;
         }
+
 
         for(int i = 0; i < NJOINTS; ++i){
                 inertia_diag_l[i] *= kg[i];
@@ -227,7 +236,7 @@ bool Control::DoControl()
         differentiator_->Differentiate_w_obs(motor_position, motor_velocity, inertia_diag_l, input_torque);
         if( role_ == ROLE_FOLLOWER){
 
-                //std::cout << "vel[i] from differ: " << motor_velocity[3] << std::endl;
+                // std::cout << "vel[i] from differ: " << motor_velocity[3] << std::endl;
                 // std::cout << "vel[i] from motor : " << velocities[3] << std::endl;
               //  velocity_log_.emplace_back(motor_velocity[3], velocities[3]);
 
@@ -274,7 +283,7 @@ bool Control::DoControl()
                 }
 
                 if(role_ == ROLE_LEADER){
-                if (i ==4){
+                if (i ==1){
 
                         std::cout << "=============================================" << std::endl;
                         std::cout << " L  kp oblique : " << oblique_coordinates_position*Kp_[i] << " kd oblique : " <<  oblique_coordinates_position*Kd_[i] << std::endl;
@@ -283,7 +292,7 @@ bool Control::DoControl()
                         }
                 }
                 if(role_ == ROLE_FOLLOWER){
-                        if (i == 4){
+                        if (i == 1){
         
                         std::cout << "=============================================" << std::endl;
                         std::cout << " F  kp oblique : " << oblique_coordinates_position*Kp_[i] << " kd oblique : " <<  oblique_coordinates_position*Kd_[i] << std::endl;
@@ -314,10 +323,6 @@ bool Control::DoControl()
 
                 joint_torque[i] = tau_p_oblique + tau_v_oblique + gravity[i] * kg[i] + tau_f_oblique + disturbance_[i];
                 input_torque[i] = joint_torque[i];
-                
-                if (i == 7){
-                        joint_torque[i] = tau_p_oblique + tau_v_oblique + tau_f_oblique + disturbance_[i]*0.0 ;
-                }
 
                 // DOB 1 Mass jointspace
                 double a = gn_[i] * Ts_;
@@ -325,12 +330,10 @@ bool Control::DoControl()
                 disturbance_lowpassout_[i] += a * (disturbance_lowpassin_[i] - disturbance_lowpassout_[i]);
                 disturbance_[i] = disturbance_lowpassout_[i] - response_->velocity[i] * Jn_[i] * gn_[i];
 
-
                 // DOB saturation to prevent vibrating
                 for (int i = 0; i < NJOINTS; ++i) {
                         disturbance_[i] = std::clamp(disturbance_[i], -SATURATION_DOB[i], SATURATION_DOB[i]);
                 }     
-
 
                 // RFOB 1 Mass jointspace
                 double a_ = GN_SCALE * gn_[i] * Ts_;
@@ -339,7 +342,7 @@ bool Control::DoControl()
                 response_->effort[i] = reactionforce_lowpassout_[i] - response_->velocity[i] * Jn_[i] *GN_SCALE * gn_[i];
 
                 // For DOB and RFOB caluculation
-                if(i < NJOINTS - 1){
+                if(i < NJOINTS ){
                         joint_torque[i] += (-tau_p_oblique - tau_v_oblique);
                 }
         }
@@ -388,10 +391,10 @@ bool Control::DoControl()
                         //std::cout << "[Null-space Torque Result]" << std::endl;
                         //for (int i = 0; i < NJOINTS-1; ++i) {
                         //        std::cout << "Joint " << i << ": " << balance_torque[i] << std::endl;
-                        //}                        
+                        //}       
+
                         for (int i = 0; i < NJOINTS-1; ++i){
                                 joint_torque[i] += balance_torque[i];
-
                         }
 
                 }                        
@@ -411,7 +414,6 @@ bool Control::DoControl()
         //kd_temp[NJOINTS-1] = 0.0;
         
         arm_->setMITSync(reference_->position, reference_->velocity, kp_temp, kd_temp, damiao_torque);
-
 
         auto end_time = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = end_time - start_time;
@@ -619,8 +621,8 @@ void Control::ComputeFriction(const double *velocity, double *friction)
                 ComputeJointPosition(positions_now.data(), response_->position.data());
                 ComputeJointVelocity(velocities_now.data(), response_->velocity.data());
 
-                std::vector<double> kp_temp = {120, 260.0, 110.0, 260.0, 10.0, 60.0, 10.0, 0.0};
-                std::vector<double> kd_temp = {2.3, 1.5, 1.5, 1.5, 0.3, 0.2, 0.3, 0.0};
+                std::vector<double> kp_temp = {120, 260.0, 110.0, 260.0, 10.0, 60.0, 10.0, 3.0};
+                std::vector<double> kd_temp = {2.3, 1.5, 1.5, 1.5, 0.3, 0.2, 0.3, 0.1};
 
                 for (int step = 0; step < nstep; step++) {
                         a = static_cast<double>(step + 1) / nstep;
